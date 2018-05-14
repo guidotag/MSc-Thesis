@@ -1,0 +1,21 @@
+%\begin{center}
+%\large \bf \runtitle
+%\end{center}
+%\vspace{1cm}
+\chapter*{\runtitle}
+
+In this thesis we consider the \problem{STAR ROUTING} problem (abbreviated as \problem{SR}) which takes a simple undirected graph $G$ and a subset of edges $X$, and asks to find a path $P$ of $G$ such that every edge in $X$ has at least one endpoint in $P$, with minimum length.
+
+We study the problem's computational complexity. We prove the problem is \class{NP-complete} in the general case, restricted to grid graphs (assuming a non-standard representation for $G$) and restricted to complete graphs. We prove that for trees the problem is in \class{P} and we give a linear-time algorithm that solves it in that case.
+
+We give two exact algorithms along with heuristics to speed up the computation. The importance of these algorithms is mainly theoretical, since experimental results show they are not fast enough to solve real-life instances, in a reasonable amount of time.
+
+We give approximation algorithms for the problem in the general case, and restricted to grid and complete graphs. In particular, we conclude the general case can be approximated within a constant factor of the optimal. For grid graphs we give a $(9/2)$-approximation algorithm, and for complete graphs we give, for all $\varepsilon > 0$, a $(2 + \varepsilon)$-approximation algorithm.\\
+
+Besides studying the \problem{SR} problem, we consider a related problem called \problem{STOPS SELECTION} (abbreviated as \problem{SS}), which takes an instance $(G, X)$ of \problem{SR} and a path $P$ that is a feasible solution of \problem{SR} for $(G, X)$, and asks to find a minimum subset $S$ of vertices of $P$ such that every edge in $X$ has at least one endpoint in $S$. We prove this problem is \class{NP-complete} in the general case. We give an exact algorithm, that turns out to be polynomial for bipartite graphs. We also give a $2$-approximation algorithm. Both the exact algorithm and the approximation algorithm are reductions to the minimum vertex cover problem.\\
+
+To the best of our knowledge, neither the \problem{SR} problem nor the \problem{SS} problem have been studied in the literature.
+
+\bigskip
+
+\noindent\textbf{Keywords:} vehicle routing, vertex cover, computational complexity, exact algorithms, approximation algorithms.

@@ -1,0 +1,21 @@
+%\begin{center}
+%\large \bf \runtitulo
+%\end{center}
+%\vspace{1cm}
+\chapter*{\runtitulo}
+
+En esta tesis consideramos el problema \problem{STAR ROUTING} (abreviado \problem{SR}) que toma un grafo simple y no dirigido $G$ y un subconjunto de aristas $X$, y pide encontrar un camino $P$ de $G$ tal que toda arista de $X$ tiene al menos un extremo en $P$, de longitud m'inima.
+
+Estudiamos la complejidad computacional del problema. Probamos que el problema es \class{NP-completo} en el caso general, restringido a grafos grillas (asumiendo una representaci'on no est'andar de $G$) y restringido a grafos completos. Probamos que en el caso de los 'arboles el problema est'a en \class{P} y damos un algoritmo de tiempo lineal que lo resuelve en ese caso.
+
+Exhibimos dos algoritmos exactos junto con heur'isticas para acelerar el c'omputo. La importancia de estos algoritmos es principalmente te'orica, pues los resultados experimentales muestran que no son suficientemente r'apidos como para resolver instancias de tama\~no real, en una cantidad de tiempo razonable.
+
+Exhibimos algoritmos aproximados para el problema en su versi'on general, y restringido a grillas y a grafos completos. En particular, concluimos que el caso general se puede aproximar por un factor constante del 'optimo. Para grafos grilla damos un algoritmo $(9/2)$-aproximado, y para grafos completos damos, para todo $\varepsilon > 0$, un algoritmo $(2 + \varepsilon)$-aproximado.\\
+
+Adem'as de estudiar el problema \problem{SR}, consideramos un problema asociado denominado \problem{STOPS SELECTION} (abreviado \problem{SS}), que toma una instancia $(G, X)$ de \problem{SR} y un camino $P$ que es soluci'on factible de \problem{SR} para $(G, X)$, y pide encontrar un m'inimo subconjunto $S$ de v'ertices de $P$ tal que toda arista de $X$ tiene al menos un extremo en $S$. Probamos que este problema es \class{NP-completo} en el caso general. Damos un algoritmo exacto, que resulta ser polinomial para grafos bipartitos. Damos adem'as un algoritmo $2$-aproximado. Tanto el algoritmo exacto como el algoritmo aproximado son reducciones al problema de vertex cover m'inimo.\\
+
+Hasta donde sabemos, ni el problema \problem{SR} ni el problema \problem{SS} han sido estudiados en la literatura previamente.
+
+\bigskip
+
+\noindent\textbf{Palabras claves:} ruteo de veh'iculos, vertex cover, complejidad computacional, algoritmos exactos, algoritmos aproximados.

@@ -1,0 +1,227 @@
+\chapter{Propiedades de $\distmax$ y $\dist$ sobre aristas}
+
+\label{ch:dist_distmax}
+
+En este ap'endice demostramos algunas propiedades de las funciones $\dist$ sobre aristas y $\distmax$, introducidas en la \autoref{de:dist_aristas} y la \autoref{de:distmax}, respectivamente. El estudio de estas funciones se ve motivado por los algoritmos aproximados para \problem{SR} sobre grillas basados en la aproximaci'on de la instancia $(K(X), \distmax)$ de \problem{PTSP}. Para poder aproximar $(K(X), \distmax)$, dicha instancia debe ser m'etrica, i. e., $\distmax$ debe cumplir la desigualdad triangular. Esta propiedad es la que se utiliza en el \autoref{al:grid_clients_approximation} (para el \autoref{th:grid_clients_approximation}). Luego de eso, en el \autoref{th:clients_approximation_improved} se propone un algoritmo similar, excepto que utiliza un procedimiento que aproxima $(K(X), \distmax)$  bas'andose en el hecho de que, en el caso de grafos grilla, $\distmax$ satisface la desigualdad triangular en forma estricta. Adicionalmente, el \autoref{le:ptsp} utiliza una relaci'on entre $\distmax$ y $\dist$ sobre aristas, que tambi'en demostramos aqu'i.
+
+\section{Propiedades generales}
+
+\begin{lemma}
+\label{le:distmax_leq_dist_plus_2}
+Sean $e$ y $f$ aristas de un grafo. Entonces $\distmax(e, f) \leq \dist(e, f) + 2$.
+
+\begin{proof}
+Sean $e_1$ y $e_2$ los extremos de $e$, y $f_1$ y $f_2$ los de $f$. Supongamos, sin p'erdida de generalidad, que $\dist(e, f) = \dist(e_1, f_1)$. Sean $i, j \in \{1, 2\}$ cualesquiera. Un camino factible de $e_i$ a $f_j$ consiste en ir de $e_i$ a $e_1$, luego de $e_1$ a $f_1$, y finalmente de $f_1$ a $f_j$. Entonces
+
+\begin{align*}
+\dist(e_i, f_j) &\leq \dist(e_i, e_1) + \dist(e_1, f_1) + \dist(f_1, f_j)\\
+&\leq \dist(e_1, f_1) + 2\\
+&= \dist(e, f) + 2
+\end{align*}
+
+Como $\distmax(e, f)$ se realiza para alg'un $\dist(e_i, f_j)$, lo anterior implica que $\distmax(e, f) \leq \dist(e, f) + 2$.
+\end{proof}
+\end{lemma}
+
+\begin{theorem}
+\label{th:distmax_clients_is_metric}
+$\distmax$ cumple la desigualdad triangular.
+
+\begin{proof}
+Dadas tres aristas $e, f$ y $g$ de un grafo, queremos ver que $\distmax(e, g) \leq \distmax(e, f) + \distmax(f, g)$. Sean $e_1$ y $g_1$ extremos de $e$ y $g$, respectivamente, tales que $\distmax(e, g) = \dist(e_1, g_1)$. An'alogamente, sean $e_2, f_1, f_2, g_2$ tales que $\distmax(e, f) = \dist(e_2, f_1)$ y $\distmax(f, g) = \dist(f_2, g_2)$.
+
+Se puede ver que $\distmax(e, f) = \dist(e_2, f_1) \geq \dist(e_1, f_1)$, porque $e_1$ tambi'en es extremo de $e$. An'alogamente, $\distmax(f, g) = \dist(f_2, g_2) \geq \dist(f_1, g_1)$ porque $f_1$ tambi'en es extremo de $f$ y $g_1$ lo es de $g$. Luego
+
+\begin{align*}
+\distmax(e, f) + \distmax(f, g) &\geq \dist(e_1, f_1) + \dist(f_1, g_1) &\\
+&\geq \dist(e_1, g_1) &\text{(} \dist \text{ sobre v'ertices es una m'etrica)}\\
+&= \distmax(e, g)&
+\end{align*}
+
+\noindent
+que es lo que quer'iamos probar.
+\end{proof}
+\end{theorem}
+
+Como curiosidad, vale la pena mencionar que, el \autoref{th:distmax_clients_is_metric} no vale si cambiamos $\distmax$ por $\dist$. En particular, no vale cuando el grafo es grilla.
+
+\begin{remark}
+\label{re:dist_sobre_aristas_no_cumple_desigualdad_triangular}
+$\dist$ sobre aristas no necesariamente cumple la desigualdad triangular.
+
+\begin{proof}
+Consideremos el grafo grilla de la \autoref{fig:anexo_1}. Se tiene $\dist(e, g) = 2L + 1$, mientras que $\dist(e, f) + \dist(f, g) = L + L = 2L$.
+
+\begin{figure}[h]
+	\begin{center}
+		\input{img/anexo_1.pdf_tex}
+	\end{center}		
+	\caption{Grafo grilla con tres aristas distinguidas $e$, $f$ y $g$.}
+	\label{fig:anexo_1}
+\end{figure}
+
+\end{proof}
+\end{remark}
+
+De todas formas, $\dist$ sobre aristas est'a cerca de cumplir la desigualdad triangular, como indica el siguiente resultado.
+
+\begin{lemma}
+\label{le:dist_triangle_inequality_1}
+Sean $e$, $f$ y $g$ aristas de un grafo. Entonces $\dist(e, g) \leq \dist(e, f) + \dist(f, g) + 1$.
+
+\begin{proof}
+Sean $e_1$ y $f_1$ extremos de $e$ y $f$ respectivamente, tales que $\dist(e, f) = \dist(e_1, f_1)$. An'alogamente, sean $f_2$ y $g_1$ tal que $\dist(f, g) = \dist(f_2, g_1)$. Un camino factible de $e$ a $g$ consiste en ir de $e_1$ a $f_1$, luego de $f_1$ a $f_2$, y finalmente de $f_2$ a $g_1$. Entonces
+
+\[\dist(e, g) \leq \dist(e_1, f_1) + 1 + \dist(f_2, g_1) = \dist(e, f) + \dist(f, g) + 1\]
+\end{proof}
+\end{lemma}
+
+\noindent
+La desigualdad del \autoref{le:dist_triangle_inequality_1} es ajustada, como muestra el ejemplo de la \autoref{re:dist_sobre_aristas_no_cumple_desigualdad_triangular}.
+
+\section{Propiedades sobre grafos grilla}
+
+\begin{lemma}
+\label{le:distmax_geq_dist_plus_1}
+Sean $e$ y $f$ aristas de un grafo grilla. Entonces $\distmax(e, f) \geq \dist(e, f) + 1$.
+
+\begin{proof}
+Basta ver que hay alg'un camino m'inimo, entre un extremo de $e$ y otro de $f$, de longitud mayor o igual a $\dist(e, f) + 1$.
+
+Sean $e_1$ y $f_1$ extremos de $e$ y $f$, respectivamente, tales que $\dist(e, f) = \dist(e_1, f_1)$. Sea $e_2$ el extremo opuesto de $e_1$. La clave es que al ser el grafo una grilla, vale que $\dist(e_2, f_1) \neq \dist(e_1, f_1)$, pues $e_1$ y $e_2$ son v'ertices adyacentes. Luego, debe ser $\dist(e_2, f_1) > \dist(e_1, f_1) = \dist(e, f)$, o sea que $\dist(e_2, f_1) \geq \dist(e, f) + 1$. Como $\distmax(e, f) \geq \dist(e_2, f_1)$, el resultado se sigue.
+\end{proof}
+\end{lemma}
+
+\begin{corollary}
+\label{co:distmax_dist}
+Sean $e$ y $f$ aristas de un grafo grilla. Entonces $\distmax(e, f) \in \{\dist(e, f) + 1, \dist(e, f) + 2\}$.
+\end{corollary}
+
+\begin{definition}
+Sea $G$ un grafo grilla. Sean $e$ y $f$ dos aristas de $G$. Decimos que $e$ y $f$ est'an alineados en $G$, si al considerar una orientaci'on de $G$ en la que $e$ es una arista horizontal, resulta que $f$ es una arista horizontal que tiene sus extremos en las mismas columnas que los extremos de $e$. La \autoref{fig:anexo_2} muestra tres ejemplos de esta definici'on.
+\end{definition}
+
+\begin{figure}[h]
+	\begin{center}
+		\input{img/anexo_2.pdf_tex}
+	\end{center}		
+	\caption{(a) $e$ y $f$ est'an alineados. (b), (c) $e$ y $f$ no est'an alineados.}
+	\label{fig:anexo_2}
+\end{figure}
+
+La definici'on es buena, en el sentido de que no depende de cu'al de las dos orientaciones de $G$ que dejan a $e$ horizontal elijamos. Notar que tampoco depende del orden en que consideremos $e$ y $f$.
+
+\begin{lemma}
+\label{le:aligned_edges}
+Sean $e$ y $f$ aristas de un grafo grilla. Entonces $\distmax(e, f) = \dist(e, f) + 1$ si y s'olo si $e$ y $f$ est'an alineados.
+
+\begin{proof}
+($\Leftarrow$) Es obvio.
+
+($\Rightarrow$) Demostramos el contrarrec'iproco. Supongamos que $e$ y $f$ no est'an alineados. Consideremos una orientaci'on de la grilla que deje horizontal a $e$. Separamos en dos casos, seg'un $f$ sea horizontal o vertical, en esta orientaci'on. La \autoref{fig:anexo_3} ilustra los dos casos. Se puede ver que siempre es $\distmax(e, f) = \dist(e, f) + 2$.
+
+\begin{figure}[h]
+	\begin{center}
+		\input{img/anexo_3.pdf_tex}
+	\end{center}		
+	\caption{(a) $f$ es horizontal. (b) $f$ es vertical.}
+	\label{fig:anexo_3}
+\end{figure}
+\end{proof}
+\end{lemma}
+
+\begin{lemma}
+\label{le:dist_triangle_inequality_2}
+Sean $e$, $f$ y $g$ aristas de un grafo grilla. Si $e$ y $f$ est'an alineados o si $f$ y $g$ est'an alineados, entonces $\dist(e, g) \leq \dist(e, f) + \dist(f, g)$.
+
+\begin{proof}
+Supongamos que $e$ y $f$ est'an alineados. Sean $f_1$ y $g_1$ extremos de $f$ y $g$, respectivamente, tal que $\dist(f, g) = \dist(f_1, g_1)$. Como $e$ y $f$ est'an alineados, consideramos $e_1$, el extremo de $e$ en la misma columna que $f_1$. Entonces $\dist(e, f) = \dist(e_1, f_1)$. Esta situaci'on se ilustra en la \autoref{fig:anexo_4}. Un camino factible de $e$ a $g$ consiste en ir de $e_1$ a $f_1$, y luego de $f_1$ a $g_1$. Entonces $\dist(e, g) \leq \dist(e_1, f_1) + \dist(f_1, g_1) = \dist(e, f) + \dist(f, g)$. Notar que es indistinto si $f$ y $g$ est'an o no alineados.
+
+\begin{figure}[h]
+	\begin{center}
+		\input{img/anexo_4.pdf_tex}
+	\end{center}		
+	\caption{$e$ y $f$ est'an alineados.}
+	\label{fig:anexo_4}
+\end{figure}
+
+Pasamos al otro caso. Si $f$ y $g$ est'an alineados, usamos el caso anterior y la simetr'ia de $\dist$,
+
+\begin{align*}
+\dist(e, g) &= \dist(g, e)\\
+&\leq \dist(g, f) + \dist(f, e)\\
+&= \dist(e, f) + \dist(f, g)
+\end{align*}
+
+\end{proof}
+\end{lemma}
+
+\begin{theorem}
+\label{th:distmax_clients_is_metric_strictly}
+$\distmax$ sobre grafos grilla cumple la desigualdad triangular en forma estricta. Esto es, para cualesquiera tres aristas $e, f$ y $g$ de un grafo grilla, vale
+
+\[\distmax(e, g) \leq \distmax(e, f) + \distmax(f, g) - 1\]
+
+\begin{proof}
+Separamos en casos, seg'un las aristas est'en o no alineados entre s'i.
+
+\begin{enumerate}
+\item $e$ y $g$ est'an alineados
+
+Entonces, por el \autoref{le:aligned_edges}, es $\distmax(e, g) = \dist(e, g) + 1$. Adem'as, $f$ est'a alineado con $e$ y $g$, o no est'a alineado con ninguno.
+
+\begin{enumerate}
+\item $f$ est'a alineado con $e$ y $g$
+
+Por el \autoref{le:aligned_edges}, es $\distmax(e, f) = \dist(e, f) + 1$ y $\distmax(f, g) = \dist(f, g) + 1$. Por el \autoref{le:dist_triangle_inequality_2}, vale $\dist(e, g) \leq \dist(e, f) + \dist(g, f)$. Luego
+
+\begin{align*}
+\distmax(e, g) &= \dist(e, g) + 1\\
+&\leq (\dist(e, f) + \dist(f, g)) + 1\\
+&= (\dist(e, f) + 1) + (\dist(f, g) + 1) - 1\\
+&= \distmax(e, f) + \distmax(f, g) - 1
+\end{align*}
+
+\item $f$ no est'a alineado con ninguno de $e$ o $g$
+
+Por el \autoref{le:aligned_edges}, es $\distmax(e, f) = \dist(e, f) + 2$ y $\distmax(f, g) = \dist(f, g) + 2$. Por el \autoref{le:dist_triangle_inequality_1}, es $\dist(e, g) \leq \dist(e, f) + \dist(f, g) + 1$. Se tiene
+
+\begin{align*}
+\distmax(e, g) &= \dist(e, g) + 1\\
+&\leq (\dist(e, f) + \dist(f, g) + 1) + 1\\
+&= (\dist(e, f) + 2) + (\dist(f, g) + 2) - 2\\
+&= \distmax(e, f) + \distmax(f, g) - 2
+\end{align*}
+\end{enumerate}
+
+\item $e$ y $g$ no est'an alineados
+
+Entonces $\distmax(e, g) = \dist(e, g) + 2$. En este caso, $f$ est'a alineado con, a lo sumo, uno de $e$ o $g$.
+
+\begin{enumerate}
+\item $f$ est'a alineado con exactamente uno de $e$ o $g$
+
+Supongamos que est'a alineado con $e$. El otro caso es igual. Se tiene  $\distmax(e, f) = \dist(e, f) + 1$ y $\distmax(f, g) = \dist(f, g) + 2$. Adem'as, por el \autoref{le:dist_triangle_inequality_2}, es $\dist(e, g) \leq \dist(e, f) + \dist(f, g)$. Luego
+
+\begin{align*}
+\distmax(e, g) &= \dist(e, g) + 2\\
+&\leq (\dist(e, f) + \dist(f, g)) + 2\\
+&= (\dist(e, f) + 1) + (\dist(f, g) + 2) - 1\\
+&= \distmax(e, f) + \distmax(f, g) - 1
+\end{align*}
+
+\item $f$ no est'a alineado con ninguno de $e$ o $g$
+
+Entonces, es $\distmax(e, f) = \dist(e, f) + 2$ y $\distmax(f, g) = \dist(f, g) + 2$, y
+
+\begin{align*}
+\distmax(e, g) &= \dist(e, g) + 2\\
+&\leq (\dist(e, f) + \dist(f, g) + 1) + 2\\
+&= (\dist(e, f) + 2) + (\dist(f, g) + 2) - 1\\
+&= \distmax(e, f) + \distmax(f, g) - 1
+\end{align*}
+\end{enumerate}
+\end{enumerate}
+
+\end{proof}
+\end{theorem}

@@ -1,0 +1,824 @@
+\chapter{Algoritmos aproximados para \problem{STAR ROUTING}}
+\label{ch:aproximados}
+%{\begin{small}%
+%\begin{flushright}%
+%\it
+%No! No different! Only different in your mind.\\
+%--Maestro Yoda
+%\end{flushright}%
+%\end{small}%
+%\vspace{.5cm}}
+
+Recordemos que un algoritmo aproximado es un algoritmo que produce soluciones factibles para un problema, pero que no necesariamente son 'optimas. En este cap'itulo presentamos una variedad de algoritmos aproximados para \problem{SR} sobre distintas clases de grafos: general, sobre grillas y sobre grafos completos. El estudio de la existencia de algoritmos aproximados para un problema es interesante tanto desde el punto de vista te'orico como pr'actico. Por un lado, es interesante desde lo te'orico, porque la mera existencia o no de algoritmos aproximados para un problema habla sobre su grado de dificultad. Por ejemplo, es bien sabido que \problem{TSP} no admite algoritmos aproximados con factor de aproximaci'on constante \cite[p. 147]{Ga76}, mientras que para \problem{TSP} m'etrico hay un algoritmo $(3/2)$-aproximado \cite[p. 132]{Ga76}, por lo que podemos decir que la versi'on m'etrica es ``m'as f'acil'', a'un cuando no se conocen algoritmos eficientes para ninguno de los dos problemas. Desde el punto de vista pr'actico, un algoritmo aproximado es un buen m'etodo para generar una soluci'on factible inicial en el contexto de un algoritmo exacto. Si el factor de aproximaci'on es peque\~no, tenemos la garant'ia de que dicha soluci'on factible no est'a demasiado lejos de la soluci'on 'optima. Combinando esto con buenas funciones de acotaci'on podemos acelerar radicalmente la exploraci'on del espacio de soluciones.
+
+Durante este cap'itulo, $(G, X)$ es una instancia de \problem{SR} y escribimos $Z = \problem{SR}^*(G, X)$ y $k = |X|$.
+
+\section{Relaci'on matem'atica entre \problem{SR} y \problem{PTSP}}
+
+Empezamos explorando ciertas relaciones entre \problem{SR} y \problem{PTSP}. Este an'alisis ser'a 'util posteriormente, pues construiremos aproximaciones para \problem{SR} general y sobre grillas, utilizando algoritmos aproximados para \problem{PTSP} m'etrico y rectil'ineo.
+
+\begin{definition}[Distancia m'axima]
+\label{de:distmax}
+Dadas dos aristas $e$ y $f$ de un grafo, definimos $\distmax(e, f)$ como la distancia m'as grande entre un extremo de $e$ y uno de $f$. Esto es,
+
+\[\distmax(e, f) = \max\limits_{\substack{u \text{ extremo de }e \\ v \text{ extremo de }f}} \dist(u, v)\]
+\end{definition}
+
+\noindent
+Notar que $\distmax$ no es una distancia en el sentido matem'atico, porque $\distmax(e, e) = 1 \neq 0$. De todos modos, la denominamos de ese modo, por comodidad. Durante este cap'itulo haremos referencia a una variedad de resultados acerca de $\dist$ sobre aristas y $\distmax$, todos presentados en el \autoref{ch:dist_distmax}.
+
+\begin{lemma}
+\label{le:ptsp}
+\[\problem{PTSP}^*(K(X), \distmax) \leq \problem{PTSP}^*(K(X), \dist) + 2(k - 1)\]
+
+\begin{proof}
+Sea $P = \langle e_1, \dots, e_k \rangle$ una soluci'on 'optima de \problem{PTSP} para $(K(X), \dist)$. Este camino es una soluci'on factible de \problem{PTSP} para la instancia $(K(X), \distmax)$, con lo cual $\problem{PTSP}^*(K(X), \distmax) \leq \length_{\distmax}(P)$. Luego, basta ver que $\length_{\distmax}(P) \leq \problem{PTSP}^*(K(X), \dist) + 2(k - 1)$. Se tiene
+
+\begin{align*}
+\length_{\distmax}(P) &= \sum_{i = 1}^{k - 1} \distmax(e_i, e_{i + 1}) &\\
+&\leq \sum_{i = 1}^{k - 1} (\dist(e_i, e_{i + 1}) + 2) & \text{(\autoref{le:distmax_leq_dist_plus_2})}\\
+&= \sum_{i = 1}^{k - 1} \dist(e_i, e_{i + 1}) + 2(k - 1)&\\
+&= \length_{\dist}(P) + 2(k - 1)&\\
+&= \problem{PTSP}^*(K(X), \dist) + 2(k - 1)&
+\end{align*}
+\end{proof}
+\end{lemma}
+
+\begin{lemma}
+\label{le:ptsp_clients_to_sr}
+A partir de una soluci'on factible $P$ de \problem{PTSP} para $(K(X), \dist)$, podemos construir, en tiempo polinomial en el tama\~no de $(G, X)$, una soluci'on factible $Q$ de \problem{SR} para $(G, X)$, tal que $\length(Q) \leq \length_{\distmax}(P)$.
+
+\begin{proof}
+Escribamos $P = \langle e_1, \dots, e_k \rangle$. Para cada $1 \leq i \leq k$, sea $u_i$ cualquiera de los extremos de $e_i$. Sea $Q_i$ un camino m'inimo entre $u_i$ y $u_{i + 1}$ en $G$. Definimos $Q = Q_1 \circ \dots \circ Q_{k - 1}$. Se puede ver que esta es una soluci'on factible de \problem{SR} para $(G, X)$. Adem'as
+
+\begin{align*}
+\length(Q) &= \sum_{i = 1}^{k - 1} \length(Q_i) &\\
+&= \sum_{i = 1}^{k - 1} \dist(u_i, u_{i + 1}) &\\
+&\leq \sum_{i = 1}^{k - 1} \distmax(e_i, e_{i + 1}) & \text{(} u_i \text{ es extremo de } e_i \\
+& & \text{y } u_{i + 1} \text{ de } e_{i + 1} \text{)}\\
+&= \length_{\distmax}(P)
+\end{align*}
+\end{proof}
+\end{lemma}
+
+El siguiente teorema es el primer paso importante, en la comprensi'on de la relaci'on entre \problem{SR} y \problem{PTSP}.
+
+\begin{theorem}
+\label{th:clients_bounds}
+Las siguientes afirmaciones son verdaderas:
+\begin{enumerate}
+\item $\problem{PTSP}^*(K(X), \dist) \leq Z$
+\item $Z \leq \problem{PTSP}^*(K(X), \distmax)$
+\item $Z - 2(k - 1) \leq \problem{PTSP}^*(K(X), \dist)$
+\item $\problem{PTSP}^*(K(X), \distmax) \leq Z + 2(k - 1)$
+\end{enumerate}
+
+\begin{proof}
+\hfill
+\begin{enumerate}
+\item Sea $P = \langle u_1, \dots, u_r \rangle$ una soluci'on 'optima de \problem{SR} para $(G, X)$. A partir de $P$, definimos una soluci'on factible de \problem{PTSP} para $(K(X), \dist)$ del siguiente modo. Consideremos un elemento cualquiera de $\Pi(X, P) \neq \emptyset$ (ver la \autoref{de:conjunto_de_permutaciones}), digamos $Q = \langle e_1, \dots, e_k \rangle$. Como $Q$ es una permutaci'on de $X$, es una soluci'on factible de \problem{PTSP} para $(K(X), \dist)$. Debemos ver que $\length_{\dist}(Q) \leq Z = \length(P) = r - 1$.
+
+Como $Q \in \Pi(X, P)$, existe una funci'on mon'otona no decreciente $f: \{1, \dots, k\} \to \{1, \dots, r\}$, tal que $u_{f(i)}$ cubre a $e_i$. Veamos que $\length_{\dist}(\langle e_1, \dots, e_i \rangle) \leq$ $\length(\langle u_1, \dots, u_{f(i)} \rangle)$, en forma inductiva. El caso base es obvio, pues $\length_{\dist}(\langle e_1 \rangle) = 0$. Sea $1 \leq i < k$, asumamos que la afirmaci'on vale para $i$, y veamos que se mantiene para $i + 1$.
+
+\begin{align*}
+\length_{\dist}(\langle e_1, \dots, e_{i + 1} \rangle) &= \length_{\dist}(\langle e_1, \dots, e_i \rangle) + \dist(e_i, e_{i + 1}) &\\
+&\leq \length(\langle u_1, \dots, u_{f(i)} \rangle) + \dist(e_i, e_{i + 1}) & \text{(hip'otesis inductiva)}\\
+&\leq (f(i) - 1) + \dist(e_i, e_{i + 1}) &\\
+&\leq (f(i) - 1) + \dist(u_{f(i)}, u_{f(i + 1)}) & \text{(} u_{f(i)} \text{ es extremo de } e_i \\
+& & \text{y } u_{f(i + 1)} \text{ de } e_{i + 1} \text{)}\\
+&\leq (f(i) - 1) + \length(\langle u_{f(i)}, u_{f(i) + 1}, \dots, u_{f(i + 1)}\rangle) & \text{(} f(i) \leq f(i + 1) \text{)}\\
+&= (f(i) - 1) + (f(i + 1) - f(i)) &\\
+&= f(i + 1) - 1 &
+\end{align*}
+
+Esto completa la inducci'on. Poniendo $i = k$, y dado que $f(k) \leq r$ (m'as a'un, es $f(k) = r$ por la optimalidad de $P$), concluimos que $\length_{\dist}(Q) \leq \length(\langle u_1, \dots, u_{f(k)}\rangle) = f(k) - 1 \leq r - 1$, como quer'iamos probar.
+
+\item Sea $P = \langle e_1, \dots, e_k \rangle$ una soluci'on 'optima de \problem{PTSP} para $(K(X), \distmax)$. Sea $Q$ una soluci'on factible de \problem{SR} para $(G, X)$, como indica el \autoref{le:ptsp_clients_to_sr}. Como $Q$ es soluci'on factible, vale $Z \leq \length(Q)$. Adem'as, $\length(Q) \leq \length_{\distmax}(P) = \problem{PTSP}^*(K(X), \distmax)$.
+
+\item Es consecuencia del \autoref{le:ptsp} y el 'item 2 de este teorema.
+\item Es consecuencia del \autoref{le:ptsp} y el 'item 2 de este teorema.
+\end{enumerate}
+\end{proof}
+\end{theorem}
+
+\begin{corollary}
+\label{co:clients_bounds}
+\[Z - 2(k - 1) \leq \problem{PTSP}^*(K(X), \dist) \leq Z \leq \problem{PTSP}^*(K(X), \distmax) \leq Z + 2(k - 1)\]
+\end{corollary}
+
+Nos preguntamos qu'e sucede si en lugar de considerar \problem{PTSP} sobre $K(X)$, lo hacemos sobre grafos completos definidos a partir de otros elementos de $G$. Estos elementos deben ser tales que al recorrerlos, el conjunto de clientes $X$ sea cubierto por el camino. Una alternativa natural, es considerar un conjunto de v'ertices que cubra $X$, esto es, un vertex cover de $G[X]$.
+
+\begin{lemma}
+\label{le:ptsp_vc_to_sr}
+Sea $S$ un vertex cover de $G[X]$. A partir de una soluci'on factible $P$ de \problem{PTSP} para $(K(S), \dist)$, podemos construir, en tiempo polinomial en el tama\~no de $(G, X)$, una soluci'on factible $Q$ de \problem{SR} para $(G, X)$, tal que $\length(Q) = \length_{\dist}(P)$.
+
+\begin{proof}
+La demostraci'on es similar a la del \autoref{le:ptsp_clients_to_sr}. Escribamos $P = \langle u_1, \dots, u_t \rangle$. Sea $Q_i$ un camino m'inimo entre $u_i$ y $u_{i + 1}$ en $G$. Definimos $Q = Q_1 \circ \dots \circ Q_{t - 1}$. Este camino es una soluci'on factible de \problem{SR} para $(G, X)$, pues pasa por todos los v'ertices de $S$, y por lo tanto cubre $X$. Adem'as
+
+\begin{align*}
+\length(Q) &= \sum_{i = 1}^{t - 1} \length(Q_i)\\
+&= \sum_{i = 1}^{t - 1} \dist(u_i, u_{i + 1})\\
+&= \length_{\dist}(P)\\
+\end{align*}
+\end{proof}
+\end{lemma}
+
+\begin{theorem}
+\label{th:vertex_cover_bounds}
+Sea $S$ un vertex cover de $G[X]$, y escribamos $t = |S|$.
+
+\begin{enumerate}
+\item $Z \leq \problem{PTSP}^*(K(S), \dist)$
+\item $\problem{PTSP}^*(K(S), \dist) \leq Z + 2(t - 1)$
+\end{enumerate}
+
+\begin{proof}
+\hfill
+\begin{enumerate}
+\item Sea $P = \langle u_1, \dots, u_t \rangle$ una soluci'on 'optima de $\problem{PTSP}$ para $(K(S), \dist)$. Sea $Q$ una soluci'on factible de \problem{SR} para $(G, X)$, como indica el \autoref{le:ptsp_vc_to_sr}. Como $Q$ es soluci'on factible, vale $Z \leq \length(Q)$. Adem'as, $\length(Q) = \length_{\dist}(P) = \problem{PTSP}^*(K(S), \dist)$.
+
+\item Sea $P = \langle u_1, \dots, u_r \rangle$ una soluci'on 'optima de $\problem{SR}$ para $(G, X)$. La observaci'on clave es que para cada $s \in S$, existe un v'ertice $u_{i}$ de $P$ tal que $\dist(s, u_i) \leq 1$, porque $s$ es extremo de al menos una arista $e$ de $X$, y como el camino $P$ cubre $e$, debe pasar por alguno de los extremos de $e$.
+
+Sea $s_1, \dots, s_t$ una enumeraci'on de los v'ertices de $S$, y sean $1 \leq j_1, \dots, j_t \leq r$ 'indices tales que $\dist(s_i, u_{j_i}) \leq 1$ para cada $i$. Sin p'erdida de generalidad, supongamos que $j_1 \leq \dots \leq j_t$. Si no estuvieran ordenados crecientemente, los ordenamos, modificando acordemente la enumeraci'on de $S$ considerada. Consideramos $Q = \langle s_1, \dots, s_t \rangle$. Este camino es una soluci'on factible de $\problem{PTSP}$ para $(K(S), \dist)$, por lo que $\problem{PTSP}^*(K(S), \dist) \leq \length_{\dist}(Q)$. Adem'as
+
+\begin{align*}
+\length_{\dist}(Q) &= \sum_{i = 1}^{t - 1}\dist(s_i, s_{i + 1})\\
+&\leq \sum_{i = 1}^{t - 1}(\dist(s_i, u_{j_i}) + \dist(u_{j_i}, u_{j_{i + 1}}) + \dist(u_{j_{i + 1}}, s_{i + 1}))\\
+&\leq \sum_{i = 1}^{t - 1}(1 + \dist(u_{j_i}, u_{j_{i + 1}}) + 1)\\
+&= \sum_{i = 1}^{t - 1} \dist(u_{j_i}, u_{j_{i + 1}}) + 2(t - 1)\\
+&\leq \length(P) + 2(t - 1)\\
+&= \problem{SR}^*(G, X) + 2(t - 1)
+\end{align*}
+\end{enumerate}
+\end{proof}
+\end{theorem}
+
+\begin{corollary}
+Si $S$ es un vertex cover m'inimo de $G[X]$, entonces
+
+\[Z \leq \problem{PTSP}^*(K(S), \dist) \leq Z + 2(\tau(G[X]) - 1)\]
+\end{corollary}
+
+\section{Algoritmo aproximado para \problem{SR} general}
+
+En esta secci'on presentamos un primer algoritmo aproximado, para \problem{SR} general. Este algoritmo utiliza un algoritmo aproximado para \problem{PTSP} m'etrico y otro para \problem{VC}, como cajas negras. Para cada par de algoritmos aproximados elegidos, obtendremos un algoritmo distinto para \problem{SR}. Por esta raz'on, la construcci'on que hacemos describe, en realidad, una familia de algoritmos aproximados para \problem{SR}.
+
+El funcionamiento de este algoritmo aproximado para \problem{SR} se explica gr'aficamente a trav'es del diagrama de la \autoref{fig:aproximados_4}. La idea es transformar una instancia de \problem{SR} en una instancia de \problem{PTSP} m'etrico, pasando por \problem{VC}. Luego resolvemos la instancia de \problem{PTSP} m'etrico, y finalmente volvemos hacia atr'as, transformando esta soluci'on factible de \problem{PTSP} en una soluci'on factible de \problem{SR}.
+
+\begin{figure}[h]
+	\begin{center}
+		\input{img/aproximados_4.pdf_tex}
+	\end{center}		
+	\caption{Diagrama del algoritmo aproximado para \problem{SR}; $\mathcal{A}$ es un algoritmo aproximado para \problem{PTSP} m'etrico, y $\mathcal{B}$ es un algoritmo aproximado para \problem{VC}.}
+	\label{fig:aproximados_4}
+\end{figure}
+
+\begin{theorem}
+\label{th:general_vertex_cover_approximation}
+Sea $\mathcal{A}$ un algoritmo $\alpha$-aproximado para $\problem{PTSP}$ m'etrico. Sea $\mathcal{B}$ un algoritmo $\beta$-aproximado para $\problem{VC}$. Existe un algoritmo aproximado $\mathcal{C}$ para $\problem{SR}$, que usa a $\mathcal{A}$ y $\mathcal{B}$ como cajas negras, tal que
+
+\[\mathcal{C}(G, X) \leq \alpha(1 + 2\beta)Z + 2\alpha(\beta - 1)\]
+
+\begin{proof}
+
+Sea $\mathcal{C}$ el \autoref{al:general_vertex_cover_approximation}. El algoritmo $\mathcal{C}$ es polinomial en el tama\~no de la entrada, porque cada paso es polinomial. Una observaci'on importante es que el paso 2 del algoritmo est'a bien definido, en el sentido de que la entrada $(K(S), \dist)$ de $\mathcal{A}$, es una instancia de \problem{PTSP} m'etrico, tal como requiere $\mathcal{A}$. Esto es porque $\dist$ es una m'etrica, de modo que satisface la desigualdad triangular. Por otro lado, notar que el resultado $Q$ del algoritmo es una soluci'on factible de \problem{SR} para $(G, X)$, como indica el \autoref{le:ptsp_vc_to_sr}.
+
+\begin{algorithm}
+  \caption{Algoritmo aproximado del \autoref{th:general_vertex_cover_approximation}.}
+  \label{al:general_vertex_cover_approximation}
+  \begin{algorithmic}[1]
+  	\Require Una instancia $(G, X)$ de \problem{SR}.
+  	\Ensure Una soluci'on factible de \problem{SR} para $(G, X)$.
+  	\State Calcular $S = \mathcal{B}(G[X])$.
+	\State Calcular $P = \mathcal{A}(K(S), \dist)$.
+	\State A partir de $P$, construir $Q$ como indica el \autoref{le:ptsp_vc_to_sr}.
+	\Return $Q$
+  \end{algorithmic}
+\end{algorithm}
+
+Veamos que $Q = \mathcal{C}(G, X)$ satisface la garant'ia de aproximaci'on buscada. Tenemos que
+
+\begin{align*}
+\length(Q) &= \length_{\dist}(P) & \text{(\autoref{le:ptsp_vc_to_sr})}\\
+&\leq \alpha \text{ } \problem{PTSP}^*(K(S), \dist) & \text{(} \mathcal{A} \text{ es } \alpha \text{-aproximado)}\\
+&\leq \alpha (Z + 2(|S| - 1)) & \text{(\autoref{th:vertex_cover_bounds})}\\
+&\leq \alpha (Z + 2(\beta \tau(G[X]) - 1)) & \text{(} \mathcal{B} \text{ es } \beta \text{-aproximado)}\\
+&= \alpha (Z + 2\beta(\tau(G[X]) - 1) + 2\beta - 2) & \\
+&\leq \alpha (Z + 2\beta Z + 2\beta - 2) & \text{(\autoref{co:sr_tau})}\\
+&= \alpha (1 + 2\beta) Z + 2\alpha(\beta - 1) &
+\end{align*}
+
+\noindent
+como quer'iamos.
+
+\end{proof}
+\end{theorem}
+
+\section{Algoritmos aproximados para \problem{SR} sobre grillas}
+
+El algoritmo aproximado que proponemos es similar al \autoref{al:general_vertex_cover_approximation}, excepto que ahora podemos calcular un vertex cover m'inimo en tiempo polinomial, porque el grafo es bipartito, por v'ias del \autoref{th:vc_sobre_bipartitos_es_polinomial}. Adem'as, aprovechamos que la instancia $(K(S), \dist)$ de $\problem{PTSP}$ no s'olo es m'etrica, sino, m'as a'un, rectil'inea. 
+
+\begin{theorem}
+\label{th:grid_vertex_cover_approximation}
+Sea $\mathcal{A}$ un algoritmo $\alpha$-aproximado para $\problem{PTSP}$ rectil'ineo. Existe un algoritmo $3\alpha$-aproximado $\mathcal{B}$ para $\problem{SR}$ sobre grillas, que usa a $\mathcal{A}$ como caja negra.
+
+\begin{proof}
+
+Sea $\mathcal{B}$ el \autoref{al:grid_vertex_cover_approximation}. El algoritmo $\mathcal{B}$ es polinomial en el tama\~no de la entrada, porque cada paso es polinomial. En particular, el paso 1 es polinomial, porque al ser $G$ bipartito, $G[X]$ tambi'en lo es, y le podemos computar un vertex cover m'inimo en tiempo polinomial. Observar que el paso 2 del algoritmo est'a bien definido, porque la entrada $(K(S), \dist)$ de $\mathcal{A}$, es una instancia de \problem{PTSP} rectil'ineo, tal como requiere $\mathcal{A}$. Esto es porque el subconjunto de v'ertices $S$ proviene de la grilla $G$.
+
+\begin{algorithm}
+  \caption{Algoritmo aproximado del \autoref{th:grid_vertex_cover_approximation}.}
+  \label{al:grid_vertex_cover_approximation}
+  \begin{algorithmic}[1]
+  	\Require Una instancia $(G, X)$ de \problem{SR} sobre grillas.
+  	\Ensure Una soluci'on factible de \problem{SR} para $(G, X)$.
+  	\State Calcular un vertex cover m'inimo $S$ de $G[X]$.
+	\State Calcular $P = \mathcal{A}(K(S), \dist)$.
+	\State A partir de $P$, construir $Q$ como indica el \autoref{le:ptsp_vc_to_sr}.
+	\Return $Q$
+  \end{algorithmic}
+\end{algorithm}
+
+El resultado $Q = \mathcal{B}(G, X)$ del algoritmo satisface
+
+\begin{align*}
+\length(Q) &= \length_{\dist}(P) & \text{(\autoref{le:ptsp_vc_to_sr})}\\
+&\leq \alpha \text{ } \problem{PTSP}^*(K(S), \dist) & \text{(} \mathcal{A} \text{ es } \alpha \text{-aproximado)}\\
+&\leq \alpha \text{ } (Z + 2(|S| - 1)) & \text{(\autoref{th:vertex_cover_bounds})}\\
+&= \alpha \text{ } (Z + 2(\tau(G[X]) - 1)) & \text{(} S \text{ es vertex cover m'inimo de } G[X] \text{)}\\
+&\leq \alpha \text{ } (Z + 2Z) & \text{(\autoref{co:sr_tau})}\\
+&= 3\alpha Z
+\end{align*}
+
+\end{proof}
+\end{theorem}
+
+\subsection{Algoritmos para el caso de alta densidad de clientes}
+
+Un escenario que se puede presentar en el mundo real, es el de una ciudad que tiene barrios espec'ificos con una alta densidad de entregas. Si nos concentramos en el barrio, olvid'andonos del resto de la ciudad, podemos modelar esta situaci'on como una instancia $(G, X)$ de \problem{SR}, con $G = (V, E)$ una grilla, en la que casi toda arista de $G$ est'a en $X$. En este caso, es de esperarse que una soluci'on 'optima de la instancia $(G, E)$, que es una soluci'on factible para $(G, X)$, sea una buena aproximaci'on de $\problem{SR}^*(G, X)$. En esta secci'on probamos que esto es efectivamente as'i, y damos aproximaciones para la instancia $(G, E)$, que derivan en algoritmos aproximados para $(G, X)$. Los valores $\problem{SR}^*(G, E)$ y $\problem{SR}^*(G, X)$ se relacionan a trav'es de $\tau(G)$, de modo que estudiaremos la relaci'on entre $\problem{SR}^*(G, X)$ y $\tau(G)$, y luego la relaci'on entre $\tau(G)$ y las aproximaciones de \problem{SR} para $(G, E)$.
+
+\begin{lemma}
+\label{le:tau_g_menos_e}
+Sea $e$ una arista de un grafo $G$. Entonces $\tau(G - e) \geq \tau(G) - 1$.
+
+\begin{proof}
+Consideremos un vertex cover m'inimo $S$ de $G - e$. Este conjunto cubre todas las aristas de $G$, excepto quiz'as $e$, con lo cual agreg'andole cualquiera de los dos extremos de $e$ obtenemos un vertex cover de $G$. Luego, $G$ tiene un vertex cover de cardinal $|S| + 1$, con lo cual $\tau(G) \leq |S| + 1 = \tau(G - e) + 1$, o equivalentemente $\tau(G - e) \geq \tau(G) - 1$.
+\end{proof}
+\end{lemma}
+
+\begin{lemma}
+\label{le:sr_tau_delta}
+Supongamos que $(G, X)$ es una instancia de \problem{SR} general. Sea $\overline{k} = |E| - k$ la cantidad de aristas de $G$ que no son clientes. Entonces $\tau(G) \leq Z + \overline{k} + 1$.
+
+\begin{proof}
+Llamemos $\overline{X} = E - X$ al conjunto de aristas que no son clientes. Como ya sabemos, por el \autoref{co:sr_tau} se tiene $Z \geq \tau(G[X]) - 1$. El resto de la demostraci'on consiste en ver que $\tau(G[X]) \geq \tau(G) - \overline{k}$.
+
+Aplicando sucesivas veces el \autoref{le:tau_g_menos_e}, se deduce que $\tau(G - \overline{X}) \geq \tau(G) - \overline{k}$. Adem'as, es $\tau(G[X]) = \tau(G - \overline{X})$, porque $G[X]$ y $G - \overline{X}$ s'olo difieren en un conjunto de v'ertices aislados, que no forman parte de ning'un vertex cover m'inimo.
+\end{proof}
+\end{lemma}
+
+Pasamos a estudiar la relaci'on entre $\tau(G)$ y $\problem{SR}^*(G, E)$, en el caso en que $G$ es un grafo grilla. Comenzamos calculando $\tau(G)$.
+
+\begin{theorem}
+\label{th:tau_grilla}
+Sea $G$ un grafo grilla de $n$ filas y $m$ columnas. Entonces $\tau(G) = \floor{nm / 2}$.
+
+\begin{proof}
+($\leq$) Buscaremos un vertex cover de $G$, de cardinal menor o igual a $\floor{nm / 2}$. Como $G$ es bipartito, podemos considerar una bipartici'on $\{V_1, V_2\}$ de los v'ertices. Notar que tanto $V_1$ como $V_2$ son vertex cover de $G$. De estos dos conjuntos, tomemos el m'as peque\~no. Supongamos, sin p'erdida de generalidad, que es $V_1$. Entonces $|V_1| \leq \floor{|V(G)| / 2} = \floor{nm / 2}$. Luego, $V_1$ es un vertex cover como el que quer'iamos.
+
+($\geq$) Por el \autoref{th:nu_tau}, basta encontrar un matching de $G$ de tama\~no $\floor{nm / 2}$. Separamos en casos, seg'un la paridad de $n$ y $m$.
+
+Si $m$ es par, consideramos el matching $M$ de la \autoref{fig:aproximados_1}-(a). Este matching se construye tomando aristas alternadamente de cada columna de la grilla. Se puede ver que $|M| = n (m / 2)$, pues por cada una de las $n$ filas, hay $m / 2$ aristas en el matching.
+
+\begin{figure}[h]
+	\begin{center}
+		\input{img/aproximados_1.pdf_tex}
+	\end{center}		
+	\caption{Matchings: (a) para $m$ par; (b) para $m$ impar y $n$ par; (c) para $m$ impar y $n$ impar.}
+	\label{fig:aproximados_1}
+\end{figure}
+
+Si $m$ es impar, consideramos el matching $M$ de la \autoref{fig:aproximados_1}-(b) si $n$ es par, o el de la \autoref{fig:aproximados_1}-(c) si $n$ es impar. Estos matchings se obtienen de la misma forma que el del caso $m$ par, pero ahora, adem'as, la paridad permite tomar aristas alternadamente de la 'ultima columna. Lo que resta de este argumento vale tanto para $n$ par como impar. Se puede ver que $|M| = n \floor{m / 2} + \floor{n / 2}$, pues por cada una de las $n$ filas, hay $\floor{m / 2}$ aristas horizontales del matching, que se suman a las $\floor{n / 2}$ aristas verticales de la 'ultima columna. Como $m$ es impar, es $|M| = n (m - 1) / 2 + \floor{n / 2} = nm / 2 - n / 2 + \floor{n / 2}$. Veamos que esta expresi'on es igual a $\floor{nm / 2}$. Si $n$ es par, $|M| = nm / 2 - n / 2 + n / 2 = nm / 2$. Si $n$ es impar, $|M| = nm / 2 - n / 2 + (n - 1) / 2 = nm / 2 - 1 / 2 = (nm - 1) / 2$. Como $n$ y $m$ son impares, $nm$ es impar, y por ende $(nm - 1) / 2 = \floor{nm / 2}$.
+
+En cualquier caso, encontramos un matching $M$ de cardinal $\floor{nm / 2}$.
+
+\end{proof}
+\end{theorem}
+
+Llamamos recorrido de tipo \textit{zig-zag por filas} a un camino sobre un grafo grilla que tiene la forma indicada en la \autoref{fig:aproximados_3}
+
+\begin{theorem}
+\label{th:zig_zag_filas}
+Sea $G = (V, E)$ un grafo grilla de $n$ filas y $m$ columnas. Sea $P$ un camino que realiza un recorrido tipo zig-zag por filas. Entonces $P$ es  una soluci'on factible de \problem{SR} para $(G, E)$, y
+\[
+\length(P) = \left\{
+	\begin{array}{ll}
+		2 \tau(G) & \mbox{si } n \text{ y } m \text{ son impares}\\
+		2 \tau(G) - 1 & \mbox{si no}
+	\end{array}
+\right.
+\]
+
+\begin{proof}
+Sean $n$ y $m$ la cantidad de filas y columnas, respectivamente, de $G$. Es claro que $P$ es una soluci'on factible de \problem{SR} para $(G, E)$, porque toda arista de $G$ es incidente a alg'un v'ertice de $P$.
+
+Este camino recorre cada arista de cada fila, que son $n(m - 1)$ en total, m'as $n - 1$ aristas verticales, para pasar entre filas. Por lo tanto,
+
+\begin{align*}
+\length(P) &= n(m - 1) + n - 1 &\\
+&= nm - n + n - 1 &\\
+&= nm - 1
+\end{align*}
+
+\noindent
+Si $n$ y $m$ son impares, $nm$ es impar, y $nm - 1 = 2\frac{nm - 1}{2} = 2 \floor{nm / 2} = 2 \tau(G)$. Si no, $nm$ es par, y $nm - 1 = 2 \frac{nm}{2} - 1 = 2 \floor{nm / 2} - 1 = 2 \tau(G) - 1$. 
+
+\end{proof}
+\end{theorem}
+
+\begin{figure}[h]
+	\begin{center}
+		\input{img/aproximados_3.pdf_tex}
+	\end{center}		
+	\caption{Recorrido en zig-zag por filas.}
+	\label{fig:aproximados_3}
+\end{figure}
+
+\begin{theorem}
+\label{th:aproximacion_clientes_denso}
+Existe un algoritmo aproximado $\mathcal{A}$ para \problem{SR} sobre grillas, tal que
+
+\[\length(\mathcal{A}(G, X)) \leq 2(Z + \overline{k} + 1)\]
+
+\begin{proof}
+El algoritmo $\mathcal{A}$ es un procedimiento que construye un camino en zig-zag por filas. Notar que este algoritmo no depende de $X$, pues siempre produce el mismo recorrido en zig-zag por filas. El resultado del mismo es un camino $P$, que es soluci'on factible de \problem{SR} para $(G, E)$, y por ende tambi'en para $(G, X)$, y tal que $\length(P) \leq 2 \tau(G)$. Usando el \autoref{le:sr_tau_delta} llegamos a que $\length(P) \leq 2 (Z + \overline{k} + 1)$, que es lo que quer'iamos.
+\end{proof}
+\end{theorem}
+
+El algoritmo del \autoref{th:aproximacion_clientes_denso} es 'util en el caso en que $\overline{k} = O(1)$, es decir, cuando casi todas las aristas son clientes. En ese caso, el recorrido de la grilla en zig-zag por filas tiene longitud a lo sumo $2Z + O(1)$.
+
+La garant'ia de aproximaci'on de este teorema se basa en la relaci'on entre la longitud de un camino en zig-zag por filas y $\tau(G)$, probada en el \autoref{th:zig_zag_filas}. De encontrar una soluci'on factible de \problem{SR} para $(G, E)$ que sea m'as corta, podremos dar un algoritmo aproximado para \problem{SR} sobre grillas que supere al del \autoref{th:aproximacion_clientes_denso}.
+
+A continuaci'on describimos otro recorrido de una grilla, m'as corto que zig-zag por filas, al que llamamos recorrido de tipo \textit{onda}. Comenzamos en la esquina superior izquierda, y realizamos un recorrido con forma de onda cuadrada, como indica la \autoref{fig:aproximados_5}. A cada una de estas partes constituyentes del camino las llamamos \textit{per'iodo}. Realizamos un per'iodo tras otro, mientras sea posible, alternando entre dos filas consecutivas de la grilla. A cada par de filas consecutivas en las que ocurre esta repetici'on de per'iodos, lo llamamos \textit{franja}. Al llegar al borde derecho de la grilla (i. e., el final de una franja), ser'a necesario cortar anticipadamente el per'iodo actual. Los distintos cortes anticipados que se pueden presentar aparecen en la \autoref{fig:aproximados_6}.
+
+\begin{figure}[h]
+	\begin{center}
+		\input{img/aproximados_5.pdf_tex}
+	\end{center}
+	\caption{(a) Un per'iodo. (b) Secuencia de per'iodos.}
+	\label{fig:aproximados_5}
+\end{figure}
+
+\begin{figure}[h]
+	\begin{center}
+		\input{img/aproximados_6.pdf_tex}
+	\end{center}
+	\caption{Corte anticipado de un per'iodo. En rojo se indica el per'iodo que se corta. Las l'ineas punteadas indican el borde derecho de la grilla.}
+	\label{fig:aproximados_6}
+\end{figure}
+
+Al llegar al borde y no poder continuar el per'iodo actual, recorremos dos aristas hacia abajo. A continuaci'on realizamos el mismo recorrido de la franja previa, pero en sentido inverso, y con per'iodos en forma espejada horizontalmente. De esta forma, recorremos otras dos nuevas filas. Al llegar al borde izquierdo, cortamos anticipadamente un per'iodo, y volvemos a bajar. En ocasiones, recorremos dos veces la misma arista, sobre los bordes de la grilla. La \autoref{fig:aproximados_7} ilustra esta situaci'on.
+
+\begin{figure}[h]
+	\begin{center}
+		\input{img/aproximados_7.pdf_tex}
+	\end{center}
+	\caption{El recorrido llega al final de la franja, baja a la siguiente, y realiza el camino inverso.}
+	\label{fig:aproximados_7}
+\end{figure}
+
+Este proceso se repite hasta que se hayan recorrido todas las filas, o hasta que nos quede una 'unica fila sin recorrer. Si recorrimos todas las filas, terminamos el recorrido. Si queda una 'unica fila, la recorremos con un simple camino recto, hasta llegar al borde opuesto. Para ciertas dimensiones espec'ificas de la grilla, este camino recto de la 'ultima fila s'olo necesita ir hasta la ante'ultima columna. Por simplicidad, siempre recorremos la fila completa.
+
+Notar que cuando la grilla tiene una sola columna, el camino tal como fue descripto repite aristas innecesariamente; en lugar de esto, podr'ia recorrer un simple camino vertical en l'inea recta, tal como har'ia un camino en zig-zag por filas. En el caso de una sola fila, el procedimiento se comporta eficientemente, recorriendo un camino recto. Durante el an'alisis que sigue, excluiremos estos dos casos bordes, que se pueden resolver en forma particular, y asumiremos que hay m'as de una fila y m'as de una columna.
+
+\begin{theorem}
+\label{th:onda}
+Sea $G = (V, E)$ un grafo grilla de $n$ filas y $m$ columnas, con $n, m > 1$. Si un camino $P$ de $G$ realiza un recorrido tipo onda, entonces $P$ es una soluci'on factible de \problem{SR} para $(G, E)$, y $\length(P) = \left(\frac{3}{2} + C(n, m)\right) \tau(G)$, donde
+
+\[
+C(n, m) = \left\{
+	\begin{array}{ll}
+		\frac{1}{m} - \frac{4}{nm} & \mbox{si } n \text{ es par y } m \text{ es par}\\[1mm]
+
+		\frac{3}{2m} - \frac{4}{nm} & \mbox{si } n \text{ es par y } m \text{ es impar}\\[1mm]
+		
+		\frac{1}{m} + \frac{1}{2n} - \frac{3}{nm} & \mbox{si } n \text{ es impar y } m \text{ es par}\\[1mm]
+		
+		\left(1 + \frac{1}{nm - 1}\right) \left(\frac{3}{2m} + \frac{1}{2n} - \frac{2}{nm}\right) & \mbox{si } n \text{ es impar y } m \text{ es impar}\\
+	\end{array}
+\right.
+\]
+
+\begin{proof}
+Comenzamos viendo que es una soluci'on factible de \problem{SR} para $(G, E)$. Las aristas dentro de cada franja son cubiertas por los per'iodos de dicha franja. Las aristas verticales que se ubican entre dos franjas consecutivas, son cubiertas por los recorridos sobre la franja superior e inferior. Para convencerse de esto, mirar fijamente la \autoref{fig:aproximados_8}.
+
+\begin{figure}[h]
+	\begin{center}
+		\input{img/aproximados_8.pdf_tex}
+	\end{center}
+	\caption{Todas las aristas entre dos franjas consecutivas (que no est'an dibujadas) quedan cubiertas.}
+	\label{fig:aproximados_8}
+\end{figure}
+
+Para calcular la longitud de $P$ contamos la cantidad de aristas que recorre el camino, dividi'endolas en dos clases: aquellas que forman parte de un per'iodo (quiz'as inconcluso), y aquellas utilizadas para pasar de una franja a otra. Adem'as, dependiendo de la paridad de $n$, puede que la 'ultima fila sea recorrida con un camino recto, por lo que adem'as de las aristas de este camino, debemos contar las dos aristas necesarias para pasar de la 'ultima franja a la 'ultima fila.
+
+Cada franja se compone de $m - 1$ aristas horizontales y $\ceil{m / 2}$ aristas verticales, y hay $\floor{n / 2}$ franjas. Adicionalmente, si $n$ es impar, la 'ultima fila es recorrida por un camino horizontal. Por lo tanto,
+
+\[\length(P) = \underbrace{\floor{n / 2}(m - 1 + \ceil{m / 2})}_{\text{aristas en franjas}} + \underbrace{(\floor{n / 2} - 1)2}_{\text{aristas entre franjas}} + \underbrace{\delta(n) \text{ } (2 + (m - 1))}_{\text{aristas de la 'ultima fila}}\]
+
+\noindent
+donde $\delta(n)$ vale $1$ si $n$ es impar, y $0$ en caso contrario.
+
+Si $n$ es par,
+\begin{align*}
+\length(P) &= (n / 2)(m - 1 + \ceil{m / 2}) + (n / 2 - 1)2\\
+&= (n / 2)(m + \ceil{m / 2}) - n / 2 + n - 2\\
+&= (n / 2)(m + \ceil{m / 2}) + n / 2 - 2 
+\end{align*}
+
+\noindent
+Dentro de este caso, tenemos otros dos, seg'un la paridad de $m$. Si $m$ es par,
+\begin{align*}
+\length(P) &= (n / 2)(m + m / 2) + n / 2 - 2\\
+&= (n / 2)(3m / 2) + n / 2 - 2\\
+&= (3 / 2)(nm / 2) + n / 2 - 2\\
+&= \frac{3}{2} \tau(G) + \frac{1}{2} n - 2
+\end{align*}
+
+\noindent
+En caso contrario, si $m$ es impar,
+\begin{align*}
+\length(P) &= (n / 2)(m + (m + 1) / 2) + n / 2 - 2\\
+&= (n / 2)(3m / 2) + n / 4 +  n / 2 - 2\\
+&= (3 / 2)(nm / 2) + 3n / 4 - 2\\
+&= \frac{3}{2} \tau(G) + \frac{3}{4}n - 2
+\end{align*}
+
+Pasamos al caso $n$ impar,
+\begin{align*}
+\length(P) &= ((n - 1) / 2)(m - 1 + \ceil{m / 2}) + ((n - 1) / 2 - 1)2 + m + 1\\
+&= ((n - 1) / 2)(m + \ceil{m / 2}) - ((n - 1) / 2) + (n - 1) - 2 + m + 1\\
+&= (n / 2)(m + \ceil{m / 2}) - (1 / 2)(m + \ceil{m / 2}) + (n - 1) / 2 + m - 1\\
+&= (n / 2)(m + \ceil{m / 2}) + (1 / 2)(m - \ceil{m / 2}) + n / 2 - 1 / 2 - 1\\
+&= (n / 2)(m + \ceil{m / 2}) + \floor{m / 2} / 2 + n / 2 - 3 / 2
+\end{align*}
+
+\noindent
+Si $m$ es par,
+\begin{align*}
+\length(P) &= (n / 2)(m + m / 2) + (m / 2) / 2 + n / 2 - 3 / 2\\
+&= (3 / 2)(nm / 2) + m / 4 + n / 2 - 3 / 2\\
+&= \frac{3}{2} \tau(G) + \frac{1}{2} n + \frac{1}{4} m - \frac{3}{2}
+\end{align*}
+
+\noindent
+Finalmente, si $m$ es impar,
+\begin{align*}
+\length(P) &= (n / 2)(m + (m + 1) / 2) + ((m - 1) / 2) / 2 + n / 2 - 3 / 2\\
+&= (3 / 2)(nm / 2) + n / 4 + m / 4 - 1 / 4 + n / 2 - 3 / 2\\
+&= (3 / 2) ((nm - 1) / 2 + 1 / 2) + (3 / 4)n + (1 / 4)m  - 7 / 4\\
+&= (3 / 2) \tau(G) + 3 / 4 + (3 / 4)n + (1 / 4)m - 7 / 4\\
+&= \frac{3}{2} \tau(G) + \frac{3}{4} n + \frac{1}{4} m - 1
+\end{align*}
+
+La expresi'on $\length(P) = (\frac{3}{2} + C(n, m)) \tau(G)$ se obtiene dividiendo cada una de estas expresiones por $\tau(G)$. La f'ormula enunciada de $C(n, m)$ se obtiene haciendo las cuentas correspondientes, en funci'on de la paridad de $n$ y $m$.
+\end{proof}
+\end{theorem}
+
+El siguiente lema exhibe algunas propiedades de $C(n, m)$, que nos permitir'an concluir que el recorrido de tipo onda es mejor que el recorrido en zig-zag, para todo $n, m > 1$.
+
+\begin{lemma}
+\label{le:propiedades_de_c}
+La funci'on $C(n, m)$ satisface:
+
+\begin{enumerate}
+\item $C(n, m) \leq \frac{1}{2}$ para todo $n, m > 1$.
+
+\item Si $(a_k)_{k \in \mathbb{N}}$ y $(b_k)_{k \in \mathbb{N}}$ son dos sucesiones de n'umeros naturales mayores a $1$, tales que $\displaystyle \lim_{k \to \infty} a_k = \lim_{k \to \infty} b_k = \infty$, entonces $\displaystyle \lim_{k \to \infty} C(a_k, b_k) = 0$.
+\end{enumerate}
+
+\begin{proof}
+\hfill
+\begin{enumerate}
+\item Probaremos que cada uno de los casos de la f'ormula de $C(n, m)$ est'a acotado por $1/2$.
+
+Supongamos $n$ par y $m$ par. Entonces $n \geq 2$, $m \geq 2$, y vale
+
+\[C(n, m) = \frac{1}{m} - \frac{4}{nm} < \frac{1}{m} \leq \frac{1}{2}\]
+
+Supongamos $n$ par y $m$ impar. Entonces $n \geq 2$, $m \geq 3$, y vale
+
+\[C(n, m) = \frac{3}{2m} - \frac{4}{nm} < \frac{3}{2m} \leq \frac{3}{2 \cdot 3} = \frac{1}{2}\]
+
+Supongamos $n$ impar y $m$ par. Entonces $n \geq 3$ y $m \geq 2$. Separamos en dos casos, seg'un sea $m = 2$ o $m \geq 4$. Por un lado,
+
+\[C(n, 2) = \frac{1}{2} + \frac{1}{2n} - \frac{3}{2n} = \frac{1}{2} - \frac{1}{n} < \frac{1}{2}\]
+
+\noindent
+Por otro lado, si $m \geq 4$, vale
+
+\[C(n, m) = \frac{1}{m} + \frac{1}{2n} - \frac{3}{nm} < \frac{1}{m} + \frac{1}{2n} \leq \frac{1}{4} + \frac{1}{2 \cdot 3} = \frac{5}{12} < \frac{1}{2}\]
+
+Supongamos $n$ impar y $m$ impar. Entonces $n \geq 3$ y $m \geq 3$. Separamos en dos casos, seg'un sea $m = 3$ o $m \geq 5$. Por un lado,
+
+\[C(n, 3) = \left(1 + \frac{1}{3n - 1}\right)\left(\frac{3}{2 \cdot 3} + \frac{1}{2n} - \frac{2}{3n} \right) = \frac{3n}{3n - 1}\left(\frac{1}{2} - \frac{1}{6n}\right) = \frac{3n}{3n - 1} \cdot \frac{3n - 1}{6n} = \frac{1}{2}\]
+
+\noindent
+Por otro lado, si $ m \geq 5$, vale
+\begin{align*}
+C(n, m) &= \left(1 + \frac{1}{nm - 1}\right)\left(\frac{3}{2m} + \frac{1}{2n} - \frac{2}{nm}\right)\\
+&\leq \left(1 + \frac{1}{nm - 1}\right)\left(\frac{3}{2m} + \frac{1}{2n}\right)\\
+&\leq \left(1 + \frac{1}{3 \cdot 5 - 1}\right) \left(\frac{3}{2 \cdot 5} + \frac{1}{2 \cdot 3}\right)\\
+&= \frac{15}{14} \cdot \frac{14}{30}\\
+&= \frac{1}{2}
+\end{align*}
+
+\item Llamemos $C_1(n, m)$, $C_2(n, m)$, $C_3(n, m)$, y $C_4(n, m)$ a las expresiones de los cuatro casos de la f'ormula de $C(n, m)$. Es f'acil ver que  $\lim \limits_{k \to \infty} C_i(a_k, b_k) = 0$, usando 'algebra de l'imites. Por lo tanto, cada sucesi'on $C_i(a_k, b_k)$ tiende a $0$, lo que implica que para cada $\varepsilon > 0$ existe un $k_i \in \mathbb{N}$ tal que $|C_i(a_k, b_k)| \leq \varepsilon$ para todo $k \geq k_i$. Veamos que $\lim \limits_{k \to \infty} C(a_k, b_k) = 0$. Sea $\varepsilon > 0$ y tomemos $k_1$, $k_2$, $k_3$ y $k_4$ como dijimos. Sea $k_0 = \max\{k_1, k_2, k_3, k_4\}$. Sea $k \geq k_0$, y supongamos que es $C(a_k, b_k) = C_i(a_k, b_k)$ (es decir, caemos en el caso $i$ de la definici'on de $C$). Entonces, es $|C(a_k, b_k)| = |C_i(a_k, b_k)| \leq \varepsilon$, usando, en la 'ultima desigualdad, que $k \geq k_0 \geq k_i$.
+
+\end{enumerate}
+
+\end{proof}
+\end{lemma}
+
+El 'item 1 del \autoref{le:propiedades_de_c} nos permite concluir que un recorrido de tipo onda no es peor que un recorrido zig-zag por filas, mientras que la parte 2 muestra que si hacemos tender a $n$ y $m$ a infinito simultaneamente, la longitud del camino tiende a $\frac{3}{2}\tau(G)$, lo cual es un $25\%$ mejor que un recorrido zig-zag por filas.
+
+\begin{theorem}
+Sea $G = (V, E)$ un grafo grilla de $n$ filas y $m$ columnas. Supongamos $n, m > 1$. Existe un algoritmo aproximado $\mathcal{A}$ para \problem{SR} sobre grillas, tal que
+
+\[\length(\mathcal{A}(G, X)) \leq \left(\frac{3}{2} + C(n, m)\right)(Z + \overline{k} + 1)\]
+
+\begin{proof}
+El algoritmo $\mathcal{A}$ es un procedimiento que produce un recorrido de tipo onda. La garant'ia de aproximaci'on se sigue directamente del \autoref{th:onda} y el \autoref{le:sr_tau_delta}.
+\end{proof}
+\end{theorem}
+
+\section{Algoritmo aproximado para \problem{SR} sobre completos}
+
+Recurrimos nuevamente a la estrategia de utilizar otro algoritmo aproximado como caja negra. En este caso, nos basaremos en un algoritmo aproximado para \problem{VC}. Recordemos que $\nu(G)$ denota el m'aximo cardinal de un matching de un grafo $G$.
+
+\begin{lemma}
+\label{le:sr_matching}
+Sea $G$ un grafo completo.
+
+\begin{enumerate}
+\item Si $M$ es un matching de $G[X]$, entonces $|M| - 1 \leq Z$.
+\item $Z \leq 2 \nu(G[X]) - 1$
+\end{enumerate}
+
+\begin{proof}
+\hfill
+\begin{enumerate}
+\item Probaremos que cualquier soluci'on factible de \problem{SR} para $(G, X)$ tiene longitud $|M| - 1$ o m'as. Escribamos $M = \{e_1, \dots, e_r\}$. Sea $P$ una soluci'on factible de \problem{SR} para $(G, X)$. El camino $P$ visita al menos un extremo de cada $e_i$, porque $M \subseteq X$ y $P$ cubre $X$. Estos extremos son todos distintos, por ser $M$ un matching. Luego, $P$ visita al menos $r$ v'ertices distintos, y por ende $\length(P) \geq r - 1 = |M| - 1$.
+
+\item Llamemos $r = \nu(G[X])$ y sea $M = \{e_1, \dots, e_r\}$ un matching m'aximo de $G[X]$. Escribamos $e_i = \{u_i, v_i\}$. Consideremos la secuencia $P = \langle u_1, v_1, u_2, v_2, \dots, u_r, v_r \rangle$, que se obtiene concatenando todas las aristas de $M$ (el orden es indiferente). Como $G$ es completo, $P$ es un camino de $G$ y tiene longitud igual a $2r - 1$, pues $r$ de sus aristas son los $e_i = \{u_i, v_i\}$, y adem'as usa $r - 1$ aristas $\{v_i, u_{i + 1}\}$ para conectar pares de aristas $e_i$ y $e_{i + 1}$. Notar que $v_i \neq u_{i + 1}$, porque estos pares de v'ertices son extremos de dos aristas distintas de un matching.
+
+Por otro lado, como $M$ es m'aximo, toda arista de $G[X]$ comparte un extremo con alguna arista de $M$. Esto implica que $P$ cubre todas las aristas de $X$.
+
+En definitiva, $P$ es soluci'on factible de \problem{SR} para $(G, X)$, y por ende $Z \leq \length(P) = 2r - 1 = 2\nu(G[X]) - 1$.
+\end{enumerate}
+
+\end{proof}
+\end{lemma}
+
+\begin{theorem}
+\label{th:complete_approximation}
+
+Sea $\mathcal{A}$ un algoritmo $\alpha$-aproximado para \problem{VC}, con $\alpha$ una constante. Para todo $\varepsilon > 0$, existe un algoritmo $(\alpha + \varepsilon)$-aproximado $\mathcal{B}$ para \problem{SR} sobre completos, que usa a $\mathcal{A}$ como caja negra.
+
+\begin{proof}
+
+Sea $\mathcal{B}$ el \autoref{al:complete_constant_alpha_approximation}. El algoritmo usa la constante $\sigma := \ceil{(\alpha - 1) / \varepsilon + 1} \in \mathbb{Z}_{> 0}$, que a primera vista resulta extra\~na pero toma sentido m'as adelante en la demostraci'on.
+
+El algoritmo se basa en la siguiente propiedad. Si $G[X]$ \emph{no} tiene un matching de cardinal $\sigma$ o mayor, entonces es $\nu(G[X]) \leq \sigma - 1$, y por el 'item 2 del \autoref{le:sr_matching} se tiene $Z \leq 2 (\sigma - 1) - 1 = 2 \sigma - 3$. Luego, en este caso, $Z$ es igual o m'as chico que una constante. Si no, $G[X]$ tiene un matching de cardinal $\sigma$ o mayor, y por el 'item 1 del \autoref{le:sr_matching} vale $Z \geq \sigma - 1$. Por ende, en este caso, $Z$ es igual o m'as grande que la constante $\sigma - 1$.
+
+Con esto en mente, pasamos a explicar la idea clave del algoritmo. 'Este separa las entradas en dos casos, a trav'es de la guarda de la l'inea 1, que verifica que no exista un matching grande, para as'i concluir que $Z$ tampoco es grande. En este caso, se ejecutan las l'ineas 2-5, que calculan una soluci'on exacta, lo cual se puede hacer en tiempo polinomial, porque $Z$ es suficientemente chico. Si la guarda es falsa, se ejecutan las l'ineas 6-8, que computan una soluci'on aproximada, y al ser $Z$ suficientemente grande podemos garantizar que la aproximaci'on es buena.
+
+\begin{algorithm}
+  \caption{Algoritmo aproximado del \autoref{th:complete_approximation}.}
+  \label{al:complete_constant_alpha_approximation}
+  \begin{algorithmic}[1]
+  	\Require Una instancia $(G, X)$ de \problem{SR} sobre completos.
+  	\Ensure Una soluci'on factible de \problem{SR} para $(G, X)$.
+  	\If{$G[X]$ no tiene un matching de cardinal $\sigma$ o mayor}
+		\For{$i \gets 1, \dots, 2\sigma - 3$}
+			\ForEach{$P$ camino (de $G$) de longitud $i$, formado s'olo por v'ertices de $G[X]$}
+				\If{$P$ cubre $X$}
+					\Return $P$
+				\EndIf
+			\EndFor
+		\EndFor
+  	\EndIf
+  	\State Calcular $S = \mathcal{A}(G[X])$.
+	\State Sea $P$ una permutaci'on arbitraria de $S$.
+	\Return $P$
+  \end{algorithmic}
+\end{algorithm}
+
+Veamos que el algoritmo es polinomial. Comenzamos por las l'ineas 1-5. Podemos verificar si $G[X]$ tiene un matching de cardinal $\sigma$ o mayor computando un matching m'aximo de $G[X]$, lo cual es posible hacer en tiempo polinomial \cite{Ed87}, y luego verificando si su cardinal es mayor o igual a $\sigma$.
+
+El ciclo 3-5 tiene $O((2k)^{i + 1})$ iteraciones, pues como $G[X]$ tiene a lo sumo $2k$ v'ertices, hay a lo sumo $\underbrace{(2k)\dots(2k)}_{i + 1 \text{ veces}}$ caminos de longitud $i$, formado s'olo por v'ertices de $G[X]$. Cada iteraci'on de este ciclo corre en tiempo $O(i + k)$, pues la verificaci'on de la l'inea 4 implica recorrer los $i$ v'ertices de $P$, marcando las aristas de $X$ que son cubiertos. Como $i = O(\sigma) = O(1)$, es $i + k = O(k)$. Luego, cada ejecuci'on del ciclo 3-5 toma tiempo $O(k(2k)^{i + 1})$, que es $O(\poly(k))$ puesto que $i = O(1)$. Este ciclo es ejecutado $2\sigma - 3 = O(\sigma)$ veces por el ciclo 2-5, con lo cual este ciclo externo corre en $O(\sigma\text{ }\poly(k)) = O(\poly(k))$.
+
+En definitiva, las l'ineas 1-5 corren en tiempo $O(\poly(k))$. Las l'ineas 6-8 son claramente polinomiales. Luego, el algoritmo es polinomial.\\
+
+Veamos que es correcto. Si la guarda de la l'inea 1 es verdadera, $G[X]$ no tiene un matching de cardinal $\sigma$ o mayor, y por lo tanto es $\nu(G[X]) \leq \sigma - 1$. Luego, por la parte 2 del \autoref{le:sr_matching}, $Z \leq 2(\sigma - 1) - 1 = 2\sigma - 3$. Esto indica que para encontrar una soluci'on 'optima, nos alcanza con probar todos los caminos de $G$, de longitud menor o igual a $2\sigma - 3$. Observando que una soluci'on 'optima s'olo usa v'ertices que son extremos de aristas de $X$, podemos limitarnos a probar caminos formados s'olo por v'ertices de $G[X]$. Esto es exactamente lo que hace el ciclo 2-5. 
+
+Si la guarda de la l'inea 1 es falsa, las l'ineas 6-8 se encargan de devolver una soluci'on factible aproximada. Notar que como $G$ es completo, cualquier permutaci'on de un vertex cover de $G[X]$ es una soluci'on factible de \problem{SR} para $(G, X)$.\\
+
+Finalmente, veamos que la soluci'on $P$ que devuelve el algoritmo, satisface la garant'ia de aproximaci'on afirmada. Si la ejecuci'on sigue la rama de las l'ineas 2-5, $P$ es una soluci'on 'optima, y no hay nada que probar. Supongamos que el resultado devuelto es el de las l'ineas 6-8. En ese caso, $G[X]$ tiene un matching de tama\~no $\sigma$. Por la parte 1 del \autoref{le:sr_matching}, es $Z \geq \sigma - 1$. Es $\sigma \geq (\alpha - 1) / \varepsilon + 1$, con lo cual $\varepsilon (\sigma - 1) \geq \alpha - 1$. Todo esto implica que $\varepsilon Z \geq \alpha - 1$. Luego
+\begin{align*}
+\length(P) &= |S| - 1 & \text{(} P \text{ es una permutaci'on de } S \text{)}\\
+&\leq \alpha \text{ } \tau(G[X]) - 1 & \text{(} \mathcal{A} \text{ es } \alpha \text{-aproximado)}\\
+&= \alpha (Z + 1) - 1 & \text{(\autoref{le:sr_tau})}\\
+&= \alpha \text{ } Z + \alpha - 1\\
+&\leq \alpha \text{ } Z + \varepsilon Z & \text{(} \varepsilon Z \geq \alpha - 1 \text{)}\\
+&= (\alpha + \varepsilon) Z&
+\end{align*}
+
+\end{proof}
+\end{theorem}
+
+Es interesante observar que para construir \autoref{al:complete_constant_alpha_approximation} necesitamos conocer el valor de $\alpha$, a diferencia de otros algoritmos aproximados estudiados que ignoraban el factor de aproximaci'on de los algoritmos aproximados que usaban en forma de cajas negras. En general, esto no es un inconveniente, pues cuando utilizamos un algoritmo aproximado conocemos alg'un factor de aproximaci'on concreto del mismo. Sin embargo, si usamos un factor de aproximaci'on constante $\alpha$ de la caja negra $\mathcal{A}$ que no es ajustado (es decir, que se puede mejorar), entonces la garant'ia de aproximaci'on de $\mathcal{B}$ que probamos queda ligada a ese valor de $\alpha$, y no al m'inimo factor que realiza $\mathcal{A}$. Esto es, la garant'ia de aproximaci'on demostrada est'a limitada por la eficacia de $\mathcal{A}$ \emph{conocida}. El siguiente teorema muestra que el \autoref{al:complete_constant_alpha_approximation} tiene la propiedad notable de adaptarse al m'inimo factor de aproximaci'on de $\mathcal{A}$, a'un si el factor que conoce, y que utiliza para construir $\sigma$, no es el mejor.
+
+\begin{theorem}
+\label{th:complete_approximation_oblivious}
+Sea $\mathcal{A}$ un algoritmo $\alpha$-aproximado para \problem{VC}, con $\alpha$ una constante. Supongamos que no conocemos $\alpha$, pero que s'i conocemos una constante $\beta > \alpha$, tal que $\mathcal{A}$ es $\beta$-aproximado. Para todo $\varepsilon > 0$, existe un algoritmo $(\alpha + \varepsilon)$-aproximado $\mathcal{B}$ para \problem{SR} sobre completos, que usa a $\mathcal{A}$ como caja negra, y que no usa $\alpha$.
+
+\begin{proof}
+Utilizamos el \autoref{al:complete_constant_alpha_approximation}, poniendo $\sigma := \floor{(\beta - 1) / \varepsilon + 1}$. Lo 'unico que hay que ver es que la garant'ia de aproximaci'on es $\alpha + \varepsilon$. Para esto repetimos la cuenta del \autoref{th:complete_approximation}, pero ahora usamos que $\varepsilon Z \geq \beta - 1 > \alpha - 1$.
+\end{proof}
+\end{theorem}
+
+Como el mejor algoritmo aproximado conocido para \problem{VC} es un $2$-aproximado, y ese factor es ajustado, no necesitamos apelar al \autoref{th:complete_approximation_oblivious} si usamos ese algoritmo.
+
+%\section{Sobre la aproximabilidad de \problem{SR} sobre grillas}
+%
+%La forma m'as usual de medir la dificultad de un problema consiste en determinar la existencia de algoritmos polinomiales que lo resuelvan. Este criterio es el que intenta describir la clase de problemas \class{NP}, y nos permite concluir que un problema que est'a en \class{P} no es m'as dif'icil que uno que est'a en \class{NP-completo}, salvo que $\class{P} = \class{NP}$.
+%
+%Un interrogante al respecto es: ?`c'omo hacemos para medir cu'an dif'icil es un problema que no est'a en \class{P}? Una posible respuesta a esto es determinando la existencia de algoritmos aproximados para el problema, o, m'as espec'ificamente, cu'al es el mejor factor de aproximaci'on conocido. Un problema para el cual se le conoce un algoritmo aproximado con un factor de aproximaci'on peque\~no es m'as propenso a ser resuelto en la pr'actica que otro problema que no tiene, o para el cual no se le conocen, algoritmos aproximados buenos. Esto hace al primero ``m'as f'acil'' que el segundo. Utilizamos este criterio para comparar los problemas \problem{SR} y \problem{PTSP}, restringidos a clases de instancias en las que se mantienen en \class{NP-completo}.
+%
+%En esta secci'on nos concentramos en comparar los mejores factores de aproximaci'on de \problem{SR} sobre grillas y \problem{PTSP} rectil'ineo. Los resultados que daremos indican que estos problemas son comparables, en el sentido de la dificultad para aproximarlos. En lo que sigue, notamos \problem{RPTSP} a \problem{PTSP} rectil'ineo, \problem{GSR} a \problem{SR} sobre grillas, e \problem{IGSR} a \problem{SR} sobre grillas con instancias representadas impl'icitamente. Recordemos que $R_{\Pi}$ denota al mejor factor de aproximaci'on para el problema $\Pi$.
+%
+%En el \autoref{th:grid_vertex_cover_approximation} probamos que hay un algoritmo $3\alpha$-aproximado para \problem{SR} sobre grillas, dado un algoritmo $\alpha$-aproximado para \problem{PTSP} rectil'ineo. Esto implica que $R_{\problem{GSR}} \leq 3 R_{\problem{RPTSP}}$. En lo que sigue, nos enfocamos en establecer una cota inferior para $R_{\problem{IGSR}}$. Lo hacemos, bas'andonos, en gran parte, en la demostraci'on de que \problem{SR} sobre grillas, con representaci'on impl'icita, es \class{NP-completo}.
+%
+%\begin{theorem}
+%\label{th:aprox_grid_sr_implies_aprox_rectilinear_ptsp}
+%Si existe un algoritmo $\alpha$-aproximado $\mathcal{A}$ para \problem{SR} sobre grillas, que asume una representaci'on impl'icita de la entrada, entonces existe un algoritmo $\alpha$-aproximado $\mathcal{B}$ para \problem{PTSP} rectil'ineo, que usa a $\mathcal{A}$ como caja negra.
+%\end{theorem}
+%
+%Llamamos $\hat{f}$ a la transformaci'on $f$ definida en la \autoref{su:transformacion}, pero aplicada sobre instancias de optimizaci'on. M'as precisamente, si $(G, c)$ es una instancia de \problem{PTSP} rectil'ineo (en su versi'on de optimizaci'on), definimos $\hat{f}(G, c) := (H, X)$, donde $f(G, c, -) = (H, X, -)$. Esta definici'on es correcta, porque $H$ y $X$ s'olo dependen de los argumentos $G$ y $c$ de la versi'on de decisi'on.
+%
+%\begin{proposition}
+%\label{pr:grid_sr_rectilinear_ptsp}
+%$\problem{SR}^*(H, X) = (d + 1) \problem{PTSP}^*(G, c)$
+%
+%\begin{proof}
+%($\leq$) Transformamos una soluci'on 'optima de \problem{PTSP} en una soluci'on factible de \problem{SR}, v'ia el \autoref{le:rectilinear_ptsp_to_grid_sr}.
+%
+%($\geq$) Transformamos una soluci'on 'optima de \problem{SR} en una soluci'on factible de \problem{PTSP}, v'ia el \autoref{le:grid_sr_to_rectilinear_ptsp}.
+%\end{proof}
+%\end{proposition}
+%
+%\begin{lemma}
+%\label{le:grid_sr_to_rectilinear_ptsp_bis}
+%A partir de una soluci'on factible $P$ de \problem{SR} para $(H, X)$, podemos construir, en tiempo polinomial en el tama\~no de $(G, c)$, una soluci'on factible $Q$ de \problem{PTSP} rectil'ineo para $(G, c)$, tal que $\length_c(Q) \leq \length(P) / (d + 1)$.
+%
+%\begin{proof}
+%Realizamos la construcci'on de $Q$ de la demostraci'on del \autoref{le:grid_sr_to_rectilinear_ptsp}.
+%\end{proof}
+%\end{lemma}
+%
+%\begin{proof}[Demostraci\'on (del \autoref{th:aprox_grid_sr_implies_aprox_rectilinear_ptsp}).]
+%Sea $\mathcal{B}$ el \autoref{al:rectilinear_ptsp_approximation}. Se puede ver que el algoritmo es polinomial, que cada paso est'a bien definido, y que produce una soluci'on factible de \problem{PTSP} rectil'ineo. Adem'as, el resultado $Q = \mathcal{B}(G, c)$ satisface 
+%
+%\begin{align*}
+%\length_c(Q) &\leq \length(P) / (d + 1) & \text{(\autoref{le:grid_sr_to_rectilinear_ptsp_bis})}\\
+%&\leq \alpha \text{ } \problem{SR}^*(H, X) / (d + 1) & \text{(} \mathcal{A} \text{ es } \alpha \text{-aproximado)}\\
+%&= \alpha (d + 1) \problem{PTSP}^*(G, c) / (d + 1) & \text{(\autoref{pr:grid_sr_rectilinear_ptsp})}\\
+%&= \alpha \text{ } \problem{PTSP}^*(G, c)
+%\end{align*}
+%
+%\begin{algorithm}
+%  \caption{Algoritmo aproximado del \autoref{th:aprox_grid_sr_implies_aprox_rectilinear_ptsp}.}
+%  \label{al:rectilinear_ptsp_approximation}
+%  \begin{algorithmic}[1]
+%  	\Require Una instancia $(G, c)$ de \problem{PTSP} rectil'ineo.
+%  	\Ensure Una soluci'on factible de \problem{PTSP} para $(G, c)$.
+%	\State Calcular $(H, X) = \hat{f}(G, c)$.	
+%  	\State Calcular $P = \mathcal{A}(H, X)$.
+%	\State A partir de $P$, construir $Q$ como indica el \autoref{le:grid_sr_to_rectilinear_ptsp_bis}.
+%	\Return $Q$
+%  \end{algorithmic}
+%\end{algorithm}
+%\end{proof}
+%
+%\begin{corollary}
+%Vale $R_{\problem{RPTSP}} \leq R_{\problem{IGSR}}$ y $R_{\problem{GSR}} \leq 3R_{\problem{RPTSP}}$.
+%\end{corollary}
+
+\section{Algoritmos aproximados menos efectivos}
+
+En esta secci'on damos dos algoritmos aproximados para \problem{SR} sobre grillas, que se basan en aproximaciones de la instancia $(K(X), \distmax)$ de \problem{PTSP}. Pese a que ninguno de estos algoritmos mejora a los anteriores, los exhibimos igualmente, porque, por un lado, son una prueba de que la alternativa de aproximar la instancia $(K(X), \distmax)$ de \problem{PTSP} no conduce a mejores resultados, y por otro lado, porque motiva algunas ideas interesantes.
+
+Recordemos el \autoref{co:sr_floor}, que afirma que $Z \geq \floor{k / 3} - 1$ si $G$ es una grilla. Durante esta secci'on usaremos una consecuencia de este resultado. Notemos que la antedicha desigualdad implica que $Z > (k / 3) - 2$, o equivalentemente $k < 3Z + 6$. Como $k$ y $Z$ son enteros, es $k \leq 3Z + 5$.
+
+\subsection{Aproximando la instancia $(K(X), \distmax)$ de \problem{PTSP}}
+
+\begin{theorem}
+\label{th:grid_clients_approximation}
+Sea $\mathcal{A}$ un algoritmo $\alpha$-aproximado para \problem{PTSP} m'etrico. Para todo $\varepsilon > 0$ existe un algoritmo $(7\alpha + \varepsilon)$-aproximado $\mathcal{B}$ para \problem{SR} sobre grillas, para instancias de $k \geq (24 / \varepsilon) \alpha + 6$ clientes, que usa a $\mathcal{A}$ como caja negra.
+
+\begin{proof}
+Sea $\mathcal{B}$ el \autoref{al:grid_clients_approximation}. El algoritmo $\mathcal{B}$ es claramente polinomial en el tama\~no de la entrada. Es importante notar que en el paso 1, la entrada $(K(X), \distmax)$ de $\mathcal{A}$ es, efectivamente, una instancia de \problem{PTSP} m'etrico, como indica el \autoref{th:distmax_clients_is_metric}. Por otro lado, el resultado $Q$ del algoritmo es una soluci'on factible de \problem{SR} para $(G, X)$, como dice el \autoref{le:ptsp_clients_to_sr}.
+
+\begin{algorithm}
+  \caption{Algoritmo aproximado del \autoref{th:grid_clients_approximation}.}
+  \label{al:grid_clients_approximation}
+  \begin{algorithmic}[1]
+  	\Require Una instancia $(G, X)$ de \problem{SR} sobre grillas.
+  	\Ensure Una soluci'on factible de \problem{SR} para $(G, X)$.
+  	\State Calcular $P = \mathcal{A}(K(X), \distmax)$.
+	\State A partir de $P$, construir $Q$ como indica el \autoref{le:ptsp_clients_to_sr}.
+	\Return $Q$
+  \end{algorithmic}
+\end{algorithm}
+
+Calculemos el valor de la respuesta $Q = \mathcal{B}(G, X)$,
+
+\begin{align*}
+\length(Q) &\leq \length_{\distmax}(P) & \text{(\autoref{le:ptsp_clients_to_sr})}\\
+&\leq \alpha \problem{PTSP}^*(K(X), \distmax) & \text{(} \mathcal{A} \text{ es } \alpha \text{-aproximado)}\\
+&\leq \alpha (Z + 2(k - 1)) & \text{(\autoref{th:clients_bounds})}\\
+&\leq \alpha (Z + 2((3Z + 5) - 1)) & \\
+&= \alpha (7Z + 8)
+\end{align*}
+
+\noindent
+La hip'otesis $k \geq (24 \alpha) / \varepsilon + 6$ est'a fabricada de modo tal que implique $\floor{k / 3} - 1 \geq 8 \alpha / \varepsilon$, y as'i poder usar el \autoref{co:sr_floor} para concluir que $\varepsilon Z \geq 8 \alpha$. Luego,
+
+\[\length(Q) \leq 7\alpha Z + \varepsilon Z = (7 \alpha + \varepsilon) Z\]
+
+\noindent
+que es lo que quer'iamos demostrar.
+\end{proof}
+\end{theorem}
+
+\subsection{Revisi'on y aplicaci'on de la cl'asica aproximaci'on de \problem{PTSP}}
+
+Podemos explotar un poco m'as a las propiedades de la instancia $(K(X), \distmax)$. La observaci'on clave es que si $G$ es grilla, entonces $\distmax$ sobre $X$ no s'olo satisface la desigualdad triangular, sino que lo hace en forma estricta. Esto es lo que afirma el \autoref{th:distmax_clients_is_metric_strictly}. ?`C'omo se aprovecha que la desigualdad triangular para $\distmax$ sea estricta? Comencemos recordando la cl'asica 2-aproximaci'on de \problem{PTSP} m'etrico \cite[p. 131]{Ga79} (que, en realidad, suele presentarse como una aproximaci'on de \problem{TSP}). El \autoref{al:ptsp_heuristic} es esta aproximaci'on. La heur'istica para \problem{TSP} es id'entica, salvo que se quita el paso 5.
+
+\begin{algorithm}
+  \caption{Heur'istica de duplicado de aristas para \problem{PTSP} m'etrico.}
+  \label{al:ptsp_heuristic}
+  \begin{algorithmic}[1]
+  	\Require Una instancia $(G, c)$ de \problem{PTSP} m'etrico.
+  	\Ensure Un camino hamiltoniano de $G$.
+  	\State Computar un 'arbol generador m'inimo $T$ de $G$ con pesos $c$.
+  	\State Cambiar cada arista de $T$ por dos aristas dirigidas en sentidos opuestos. Sea $T'$ el 'arbol resultante.
+  	\State Computar un circuito euleriano $C$ de $T'$.
+  	\State Acortar el circuito, eliminando v'ertices repetidos. Sea $C'$ el circuito hamiltoniano de $G$ resultante.
+  	\State Quitarle cualquier arista a $C'$ de modo tal que se transforme en un camino hamiltoniano de $G$.
+  	\Return $C'$
+  \end{algorithmic}
+\end{algorithm}
+
+El an'alisis cl'asico de este algoritmo comienza observando que $\weight_c(T) \leq \problem{PTSP}^*(G, c)$, pues toda soluci'on factible de $\problem{PTSP}$ para $(G, c)$ es un camino hamiltoniano de $G$, y por lo tanto tambi'en es un 'arbol generador de $G$. Entonces
+
+\[\length_c(C) = \weight_c(T') = 2 \text{ } \weight_c(T) \leq 2 \text{ }  \problem{PTSP}^*(G, c)\]
+
+La otra parte del an'alisis consiste en mostrar que al acortar $C$, en la l'inea 4 del algoritmo, nos queda un camino de peso menor o igual. Asumiendo que $c$ satisface la desigualdad triangular, cada vez que tenemos una secuencia de tres v'ertices $\langle u, v, w \rangle$ en el circuito, podemos quitar el v'ertice $v$ del medio, y garantizar que la longitud no empeora, pues $c(u, w) \leq c(u, v) + c(v, w)$.
+
+?`Qu'e sucede si sabemos que, m'as a'un, $c(u, w) \leq c(u, v) + c(v, w) - 1$? En este caso, podemos asegurar que el cambio reduce el peso del circuito en, al menos, una unidad. Por lo tanto, con esta versi'on m'as fuerte de desigualdad triangular, podemos garantizar que $\length_c(C') \leq \length_c(C) - r$, donde $r$ es la cantidad de veces que removemos un v'ertice de $C$. A continuaci'on calculamos $r$.
+
+Sea $n = |V(G)|$. Como $T$ es 'arbol generador de $G$, tiene $n$ v'ertices y $n - 1$ aristas. Luego, $T'$ tiene $2(n - 1) = 2n - 2$ aristas. Como $C$ es un circuito hamiltoniano de $T'$, tiene la misma cantidad de aristas que $T'$. Escribamos, entonces, $C = \langle u_1, \dots, u_{2n - 2}, u_1 \rangle$. En el camino $\langle u_1, \dots, u_{2n - 2} \rangle$, cada uno de los $n$ v'ertices de $G$ aparece una vez, y los dem'as v'ertices del camino son repetidos. Entonces, se remueven $r = (2n - 2) - n = n - 2$ v'ertices de $C$.
+
+\begin{theorem}
+Sea $(G, c)$ una instancia de \problem{PTSP}, tal que $c$ cumple $c(u, w) \leq c(u, v) + c(v, w) - 1$ para todo $u, v, w \in V(G)$. En estas condiciones, el \autoref{al:ptsp_heuristic} produce un camino hamiltoniano $P$ de peso $\length_c(P) \leq 2 \text{ } \problem{PTSP}^*(G, c) - (|V(G)| - 2)$.
+\end{theorem}
+
+Para la instancia $(K(X), \distmax)$, que satisface las hip'otesis del teorema, se puede refinar el an'alisis un poco m'as, notando que $\distmax(e, f) \geq 2$ para cualesquiera $e, f \in X$, $e \neq f$, con lo cual el paso 5 del \autoref{al:ptsp_heuristic} reduce la longitud del camino en, al menos, dos unidades m'as.
+
+\begin{theorem}
+El \autoref{al:ptsp_heuristic} sobre la instancia $(K(X), \distmax)$ produce un camino hamiltoniano $P$ de peso $\length_{\distmax}(P) \leq 2 \text{ } \problem{PTSP}^*(K(X), \distmax) - k$.
+\end{theorem}
+
+Este an'alisis muestra que este algoritmo es mejor que una 2-aproximaci'on. Si ponemos este algoritmo aproximado como $\mathcal{A}$ en el \autoref{al:grid_clients_approximation}, obtenemos el siguiente resultado.
+
+\begin{theorem}
+\label{th:clients_approximation_improved}
+Para cada $\varepsilon > 0$ existe un algoritmo $(11 + \varepsilon)$-aproximado $\mathcal{B}$ para $\problem{SR}$ sobre grillas, para instancias de $k \geq 33 / \varepsilon + 6$ clientes, que usa al \autoref{al:ptsp_heuristic} como caja negra.
+
+\begin{proof}
+El algoritmo $\mathcal{B}$ es id'entico al \autoref{al:grid_clients_approximation}, pero utilizando al \autoref{al:ptsp_heuristic} como $\mathcal{A}$. El an'alisis es an'alogo, excepto que ahora tenemos que $\length_{\distmax}(P) \leq 2 \text{ } \problem{PTSP}^*(K(X), \distmax) - k$. Teniendo en cuenta esto, el algoritmo nos devuelve una soluci'on factible $Q = \mathcal{B}(G, X)$ que satisface $\length(Q) \leq 2(Z + 2(k - 1)) - k = 2Z + 3k - 4$. Como $G$ es grilla, vale $k \leq 3Z + 5$, con lo cual $\length(Q) \leq 2Z + 3(3Z + 5) - 4 = 11Z + 11$.
+
+Si $k \geq 33 / \varepsilon + 6$ entonces $\floor{k / 3} - 1 \geq 11  / \varepsilon$, y usando el \autoref{co:sr_floor}, llegamos a que $\varepsilon Z \geq 11$. Luego,
+
+\[\length(Q) \leq 11 Z + \varepsilon Z = (11 + \varepsilon) Z\]
+
+\noindent
+como quer'iamos.
+\end{proof}
+\end{theorem}
+
+Lamentablemente este algoritmo aproximado no mejora al mejor algoritmo que se puede obtener v'ia el \autoref{th:grid_clients_approximation}. La mejor aproximaci'on conocida para \problem{PTSP} m'etrico es la de Hoogeveen \cite{Ho91}, que es de factor $3/2$. Eligiendo a esta aproximaci'on como $\mathcal{A}$ en el \autoref{th:grid_clients_approximation}, obtenemos un algoritmo $(10.5 + \varepsilon)$-aproximado para \problem{SR} sobre grillas. Esto es mejor que el $(11 + \varepsilon)$-aproximado que ofrece el \autoref{th:clients_approximation_improved}.
+
+Pese a que el nuevo an'alisis no termina siendo 'util para obtener un mejor algoritmo aproximado para \problem{SR} sobre grillas, en otro contexto podr'ia llegar a ser 'util tener presente que ante una hip'otesis m'as fuerte que la desigualdad triangular, podemos obtener mejores garant'ias de aproximaci'on de este simple algoritmo aproximado.

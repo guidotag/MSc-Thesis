@@ -1,0 +1,502 @@
+\chapter{Complejidad de \problem{STAR ROUTING}}
+\label{ch:complejidad}
+
+En este cap'itulo estudiamos la complejidad de \problem{SR}, al restringirlo a distintas clases de grafos; espec'ificamente, grafos grilla, grafos completos y 'arboles. Probamos que es \class{NP-completo} en el caso general, sobre grillas y sobre completos, haciendo reducciones desde problemas adecuados. En el caso de 'arboles, demostramos que el problema se vuelve polinomial, exhibiendo un algoritmo de programaci'on din'amica de tiempo lineal, que lo resuelve.
+
+\section{\problem{SR} general es \class{NP-completo}}
+
+Usaremos una reducci'on desde el problema \problem{HAMILTONIAN PATH} (abreviado \problem{HAM}), que consiste en determinar la existencia de un camino hamiltoniano en un grafo. Este problema es \class{NP-completo} \cite[p. 60]{Ga79}.
+
+\decpr{HAM}{$G = (V, E)$ un grafo.}{?`Existe un camino hamiltoniano en $G$?}
+
+\begin{theorem}
+\label{th:sr_npc}
+\problem{SR} es \class{NP-completo}.
+
+\begin{proof}
+Veamos primero que est'a en $\class{NP}$. Dada una instancia $(G, X, k)$ de \problem{SR}, usamos como certificado un camino sobre $G$, y verificamos que cubra $X$ y tenga longitud a lo sumo $k$. Esto es claramente polinomial.
+
+Probamos que el problema est'a en \class{NP-hard} haciendo una reducci'on desde \problem{HAM}. Sea $G = (V, E)$ una instancia de \problem{HAM}. Escribamos $V = \{v_1, \dots, v_n\}$. Construimos una instancia de \problem{SR} del siguiente modo. Por cada v'ertice $v_i$, agregamos un v'ertice $u_i$, y una arista $\{v_i, u_i\}$. Sea $H$ el grafo resultante. Sea $X = \{\{v_i, u_i\}: 1 \leq i \leq n\}$. Consideramos $(H, X, n - 1)$, que es una instancia v'alida de \problem{SR}. Es f'acil ver que esta construcci'on es polinomial. Resta ver que $G$ es una instancia de SI de \problem{HAM} si y s'olo si $(H, X, n - 1)$ es una instancia de SI de \problem{SR}.
+
+Si $G$ tiene un camino hamiltoniano, entonces ese mismo camino sobre $H$ es una soluci'on factible de \problem{SR} para $(H, X)$. Como este camino de $G$ es, m'as a'un, hamiltoniano, tiene $n - 1$ aristas, y por ende $(H, X, n - 1)$ es una instancia de SI para \problem{SR}.
+
+Rec'iprocamente, supongamos que $(H, X, n - 1)$ es una instancia de SI para \problem{SR}. Si $n = 1$, se tiene que $(H, X, 0)$ y $G$ son ambas instancias de SI, y terminamos. Supongamos $n > 1$. Sea $P$ una soluci'on 'optima de \problem{SR} para $(H, X)$. Como $(H, X, n - 1)$ es una instancia de SI, vale $\length(P) \leq n - 1$. Afirmamos que $P$ es un camino hamiltoniano de $G$.
+
+En primer lugar, veamos que $P$ es un camino de $G$. Esto es, que s'olo contiene v'ertices de $V$. Supongamos, para llegar a un absurdo, que contiene un v'ertice $u_i$. Como $n > 1$, cuando $P$ llega a $u_i$, debe provenir o ir hacia $v_i$, de modo que podemos eliminar esta visita, acortando la longitud total, y a'un as'i seguiremos cubriendo todas las aristas de $X$. Esto contradice la minimalidad de $P$.
+
+Veamos que $P$, adem'as de ser un camino de $G$, es hamiltoniano. Cada v'ertice $v_i$ es visitado al menos una vez, pues de lo contrario la arista $\{v_i, u_i\}$ de $X$ quedar'ia sin cubrir (en particular, esto muestra que $P$ tiene longitud $n - 1$ o m'as). M'as a'un, el camino nunca visita dos veces el mismo v'ertice $v_i$, pues $P$ tiene longitud $n - 1$ o menos. Luego, $P$ recorre cada v'ertice de $G$ exactamente una vez.
+\end{proof}
+\end{theorem}
+
+\section{\problem{SR} sobre grillas es \class{NP-completo}}
+
+\label{se:sr_grid_npc}
+
+Para demostrarlo, supondremos que las instancias de \problem{SR} sobre grillas se representan de una forma particular, que condensa la informaci'on importante de la entrada. Comenzamos esta secci'on describiendo tal representaci'on. En la demostraci'on del \autoref{th:sr_grid_npc} quedar'a claro por qu'e es necesaria. Luego de dicha demostraci'on discutiremos las consecuencias de esta suposici'on y argumentaremos por qu'e es razonable.
+
+\begin{definition}
+\label{de:representacion_implicita}
+Decimos que una instancia $(G, X, k)$ de \problem{SR} sobre grillas usa una \textit{representaci'on impl'icita}, si:
+
+\begin{enumerate}
+\item La grilla $G$ se representa como un par de enteros $(n, m)$, donde $n$ y $m$ son la cantidad de filas y columnas, respectivamente, de $G$.
+\item Los v'ertices de $G$ son todos los puntos de coordenadas enteras del plano, contenidos en el rect'angulo de extremos $(0, 0)$, $(n - 1, 0)$, $(0, m - 1)$ y $(n - 1, m - 1)$. Esto implica que $X$ se representa como un conjunto de pares de puntos de coordenadas enteras.
+\end{enumerate}
+\end{definition}
+
+El nombre \textit{impl'icito} proviene de que la representaci'on no contiene informaci'on expl'icita sobre la topolog'ia del grafo (es decir, no utiliza una matriz, una lista de adyacencias, o alguna otra estructura con informaci'on topol'ogica).
+
+Para demostrar que \problem{SR} sobre grillas es \class{NP-completo}, vamos a hacer una reducci'on desde \problem{PTSP} rectil'ineo, que, como ya mencionamos, es \class{NP-completo}. Antes de presentar la demostraci'on, introducimos la transformaci'on polinomial que usaremos para mapear instancias de \problem{PTSP} rectil'ineo en instancias de \problem{SR} sobre grillas, y algunos lemas que describen propiedades de esta transformaci'on.
+
+\subsection{Definici'on de la transformaci'on}
+
+\label{su:transformacion}
+
+Subdividir una arista $e = \{u, v\}$ consiste en reemplazar $e$ por dos aristas, $e_1 = \{u, w\}$ y $e_2 = \{w, v\}$, agregando un nuevo v'ertice $w$. Esta operaci'on se generaliza naturalmente, del siguiente modo. Subdividir $d$ veces una arista $e = \{u, v\}$ consiste en reemplazar $e$ por $d + 1$ aristas, $e_1 = \{u, w_1\}, \dots, e_{d + 1} = \{w_d, v\}$, agregando nuevos v'ertices $w_1, \dots, w_d$.
+
+Sea $(G, c, k)$ una instancia de \problem{PTSP} rectil'ineo. Escribamos $W = V(G)$. Definimos la transformaci'on $f(G, c, k) := (H, X, (d + 1)k)$, donde
+
+\begin{itemize}
+\item $d = 2(|W| - 1)$ es un entero positivo cuyo valor cobrar'a sentido m'as adelante.
+\item $H$ es el grafo que se obtiene del siguiente modo. Consideremos el m'inimo cuadril'atero, con lados paralelos a los ejes de coordenadas, que contiene a todos los puntos $W$ en el plano. Espec'ificamente, es el cuadril'atero limitado por los puntos de m'as abajo, de m'as arriba, de m'as a la izquierda, y de m'as a la derecha de $W$. Notar que sus cuatro esquinas son puntos de coordenadas enteras. Este cuadril'atero induce un grafo grilla, cuyos v'ertices son los puntos de coordenadas enteras contenidos en el cuadril'atero, y tal que tiene una arista exactamente entre cada par de puntos del plano a distancia 1. Sea $H_0$ esta grilla; le aplicamos las siguientes transformaciones.
+\begin{enumerate}
+	\item Subdividimos $d$ veces cada arista. (Notar que el grafo resultante de las subdivisiones no es una grilla, pues los v'ertices agregados en las subdivisiones tienen grado 2.)
+	\item De la forma natural, agregamos las aristas y v'ertices necesarios para obtener un grafo grilla.
+\end{enumerate}
+
+El resultado final es el grafo $H$. Notar que el conjunto $W$ es un subconjunto de v'ertices de $H$.
+
+\item $X$ es un conjunto de aristas de $H$ que contiene, por cada v'ertice de $W$, una arista (cualquiera) incidente a ese v'ertice.
+\end{itemize}
+
+\noindent
+La \autoref{fig:complejidad_1} ilustra una transformaci'on, paso a paso. Es claro que $(H, X, (d + 1)k)$ es una instancia v'alida de \problem{SR} sobre grillas.
+
+\begin{figure}[h]
+	\begin{center}
+		\input{img/complejidad_1.pdf_tex}
+	\end{center}		
+	\caption{(a) Puntos en el plano. (b) El grafo $H_0$. (c) El grafo $H$, si se realizaran $d = 1$ subdivisiones por arista (en realidad la transformaci'on usar'ia $d = 6$, pero esto es m'as dif'icil de dibujar). En rojo se indican las aristas de $X$.}
+	\label{fig:complejidad_1}
+\end{figure}
+
+En este punto ya se puede observar la utilidad de la representaci'on impl'icita. Como el grafo $H$ debe tener tama\~no polinomial en el tama\~no de $(G, c, k)$, no podemos utilizar una representaci'on para $H$ que almacene toda su topolog'ia. Por ejemplo, si $G$ es un grafo de 2 v'ertices, y $c$ indica que est'an a distancia $1000000$, entonces el tama\~no de $(G, c, k)$ es peque\~no en relaci'on a los $1000001$ o m'as v'ertices de $H$. Como estamos asumiendo que las instancias de \problem{SR} sobre grillas se representan impl'icitamente, la transformaci'on $f$ debe producir $(H, X, (d + 1)k)$ con esa representaci'on. Por lo tanto, debemos ver c'omo computar la representaci'on impl'icita de esta instancia.
+
+Supongamos que $H_0$ tiene $n$ filas y $m$ columnas. Al finalizar la construcci'on de $H$, el grafo que obtenemos es una grilla de $N = d(n - 1) + n$ filas, pues a las $n$ filas que ten'ia $H_0$ se le agregaron $d(n - 1)$ a causa de las subdivisiones, y $M = d(m - 1) + m$ columnas, por la misma raz'on. Luego, $H$ se representa como el par $(N, M)$.
+
+Para construir $X$ debemos modificar acordemente las coordenadas de los v'ertices de $G$, a lo largo de las transformaciones que le aplicamos a $H_0$. Esta transformaci'on de las coordenadas debe obedecer a la definici'on de representaci'on impl'icita, que indica que los v'ertices de $H$ son aquellos puntos de coordenadas enteras en el rect'angulo determinado por $(0, 0)$, $(n - 1, 0)$, $(0, m - 1)$ y $(n - 1, m - 1)$. Omitimos aqu'i los detalles t'ecnicos, pero es f'acil ver que para cada v'ertice de $G$, es posible calcular la variaci'on de sus coordenadas haciendo aritm'etica b'asica, en tiempo polinomial.
+
+\subsection{Propiedades de la transformaci'on}
+
+\begin{lemma}
+\label{le:transformacion_polinomial_sr_grillas}
+La transformaci'on $f$ es polinomial en el tama\~no de $(G, c, k)$.
+
+\begin{proof}
+Llamemos $I = (G, c, k)$ a la instancia. Debemos ver que el c'omputo de $d$, $H$ y $X$ son polinomiales en $\size(I)$. Asumimos que $G$, $c$ y $k$ se representan de las formas tradicionales. Si $D$ es el m'aximo peso entre dos v'ertices de $G$, tenemos que
+\begin{align*}
+\size(I) &= \Omega(\size(G) + \size(c) + \size(k))\\
+&= \Omega(|W|^2 + \lg D + \lg k)
+\end{align*}
+
+\noindent
+pues $\size(G) = \Omega(|W|^2)$ ($G$ es un grafo completo) y $\size(c) = \Omega(\lg D)$ ($D$ es uno de los pesos de $c$). Sea $S = |W|^2 + \lg D + \lg k$, de modo que $\size(I) = \Omega(S)$. Veamos que el c'omputo de la instancia $(H, X, (d + 1)k)$ representada impl'icitamente cuesta $O(\poly(S)) = O(\poly(\size(I)))$.
+
+El costo de calcular $(d + 1)k$ es $C_1 = O(1 + \lg d \lg k)$. Como $\lg d = \lg(2(|W| - 1)) = O(\lg |W|) = O(\lg S)$, se tiene $C_1 = O(S \lg S) = O(\poly(S))$. El costo de calcular $N = d(n - 1) + n$ es $C_2 = O(1 + \lg d \lg n)$. Como $H_0$ tiene $n$ filas y $m$ columnas, el cuadril'atero del que proviene es de tama\~no $n \times m$. Entonces $D \geq n$, pues este cuadril'atero tiene al menos un v'ertice de $G$ en cada borde, y en particular $\lg n = O(\lg D) = O(S)$. Luego, $C_2 = O(S \lg S) = O(\poly(S))$. An'alogamente se prueba que el costo de calcular $M = d(m - 1) + m$ es $C_3 = O(\poly(S))$.
+
+Finalmente, analicemos el costo $C_4$ de calcular $X$. Este conjunto tiene $|W|$ aristas (una por cada v'ertice de $G$), y cada una se calcula en tiempo polinomial. Luego, $C_4 = O(|W| \poly(S)) = O(\poly(S))$.
+\end{proof}
+\end{lemma}
+
+\begin{lemma}
+\label{le:rectilinear_ptsp_to_grid_sr}
+A partir de un camino hamiltoniano $P$ de $G$, se puede obtener un camino $Q$ de $H$, que cubre $X$, y tal que $\length(Q) = (d + 1)\length_c(P)$.
+
+\begin{proof}
+Podemos replicar el camino $P$ sobre $H_0$ f'acilmente, cambiando cada arista $\{u, v\}$ de $P$ por un camino m'inimo entre $u$ y $v$ en la grilla $H_0$. As'i obtenemos un camino $P'$ de $H_0$ que visita todo $W$ (pues $P$ es hamiltoniano) y de $\length(P') = \length_c(P)$ (pues $\dist_{H_0}(u, v) = c(u, v)$). A $P'$ lo podemos transformar en un camino de $H$, aplicando las $d$ subdivisiones sobre cada una de sus aristas. Si $P''$ es este nuevo camino, entonces $\length(P'') = (d + 1) \length(P')$. Luego,
+
+\[\length(P'') = (d + 1) \length(P') = (d + 1) \length_c(P)\]
+
+\noindent
+Como $P'$ visita todo $W$, $P''$ tambi'en lo hace, y por lo tanto $P''$ cubre todo $X$ en $H$. Entonces $Q = P''$ cumple lo buscado.
+\end{proof}
+\end{lemma}
+
+\begin{lemma}
+\label{le:grid_sr_to_rectilinear_ptsp}
+A partir de un camino $P$ de $H$ que cubre $X$, se puede obtener un camino hamiltoniano $Q$ de $G$, tal que $\length_c(Q) < \length(P) / (d + 1) + 1$.
+
+\begin{proof}
+Escribamos $P = \langle u_1, \dots, u_r \rangle$. La observaci'on clave es que para cada $w \in W$, existe un v'ertice $u_i$ de $P$ tal que $\dist_H(w, u_i) \leq 1$. Esto es porque cada v'ertice de $W$ es extremo de al menos una arista $e$ de $X$. Como $P$ cubre $X$, debe pasar por alguno de los extremos de $e$.
+
+Sea $w_1, \dots, w_{|W|}$ una enumeraci'on de los v'ertices de $W$, y sean $1 \leq j_1, \dots, j_{|W|} \leq r$ 'indices tales que $\dist_H(w_i, u_{j_i}) \leq 1$ para cada $i$. Sin p'erdida de generalidad, supongamos que $j_1 \leq \dots \leq j_{|W|}$ (si no estuvieran ordenados crecientemente, los ordenamos, modificando acordemente la enumeraci'on de $W$ considerada). Consideramos $Q = \langle w_1, \dots, w_{|W|}\rangle$, que es un camino hamiltoniano de $G$. Su peso satisface
+
+\begin{align*}
+\length_c(Q) &= \sum_{i = 1}^{|W| - 1}c(w_i, w_{i + 1}) &\\
+&= \sum_{i = 1}^{|W| - 1} \dist_{H_0}(w_i, w_{i + 1}) & \text{(construcci'on de } H_0 \text{)}\\
+&= \sum_{i = 1}^{|W| - 1} \dist_{H}(w_i, w_{i + 1}) / (d + 1) & \text{(construcci'on de } H \text{)}\\
+&\leq \sum_{i = 1}^{|W| - 1} (\dist_{H}(w_i, u_{j_i}) + \dist_{H}(u_{j_i}, u_{j_{i + 1}}) &\\
+& \hspace{1.5cm} + \dist_{H}(u_{j_{i + 1}}, w_{i + 1})) / (d + 1) & \text{(} w_i \to u_{j_i} \rightsquigarrow u_{j_{i + 1}} \to w_{i + 1} \text{ es un}\\
+& & \text{camino factible de } w_i \text{ a } w_{i + 1} \text{ en } H \text{)} \\
+&\leq \sum_{i = 1}^{|W| - 1} (1 + \dist_{H}(u_{j_i}, u_{j_{i + 1}}) + 1) / (d + 1) &\\
+&= \left( \sum_{i = 1}^{|W| - 1} \dist_{H}(u_{j_i}, u_{j_{i + 1}}) + 2(|W| - 1) \right) / (d + 1) &\\
+&\leq (\length(P) + 2(|W| - 1)) / (d + 1) & \text{(} j_1 \leq \dots \leq j_{|W|} \text{)}\\
+&= (\length(P) + d) / (d + 1) & \text{(} d = 2(|W| - 1) \text{)}\\
+&< \length(P) / (d + 1) + 1 &
+\end{align*}
+\end{proof}
+\end{lemma}
+
+\subsection{La demostraci'on}
+
+\begin{theorem}
+\label{th:sr_grid_npc}
+\problem{SR} sobre grafos grilla, usando una representaci'on impl'icita para las instancias, es \class{NP-completo}.
+\begin{proof}
+La idea para ver que est'a en $\class{NP}$ es similar a la del \autoref{th:sr_npc}, aunque con la nueva representaci'on de la entrada elegida debemos tomar algunos recaudos. La representaci'on impl'icita nos impide representar el camino como una secuencia de v'ertices tradicional, en la que todo par de v'ertices consecutivos son adyacentes, pues esto podr'ia no tener longitud polinomial en el tama\~no de la entrada. Dada una instancia $(G, X, k)$ de \problem{SR} sobre grillas, el certificado s'olo debe contener aquellos v'ertices del camino que sean extremos de aristas de $X$, en el orden en que aparecen en el camino. Para chequear que cubre $X$, recorremos la secuencia marcando las aristas de $X$ cubiertas, y al final verificamos que est'en todas cubiertas. Para chequear que tenga longitud $k$ o menos, acumulamos la distancia Manhattan entre cada par consecutivo de v'ertices, y verificamos que esta longitud total sea $k$ o menos.
+
+Veamos que el problema es $\class{NP-hard}$. La reducci'on es desde \problem{PTSP} rectil'ineo, utilizando la transformaci'on $f$. Debemos ver que $(G, c, k)$ es una instancia de SI de \problem{PTSP} rectil'ineo si y s'olo si $f(G, c, k) = (H, X, (d + 1)k)$ es una instancia de SI de \problem{SR} sobre grillas.
+
+Sea $(G, c, k)$ es una instancia de SI de \problem{PTSP} rectil'ineo, entonces existe un camino hamiltoniano $P$ en $G$ de peso a lo sumo $k$. Por el \autoref{le:rectilinear_ptsp_to_grid_sr}, existe un camino $Q$ que cubre todo $X$, con longitud a lo sumo $(d + 1)k$. Luego, $f(G, c, k)$ es una instancia de SI de \problem{SR} sobre grillas.
+
+Rec'iprocamente, sea $(H, X, (d + 1)k)$ una instancia de SI de \problem{SR} sobre grillas. Entonces existe un camino $P$ de $H$ que cubre $X$, de longitud $\length(P) \leq (d + 1)k$. Por el \autoref{le:grid_sr_to_rectilinear_ptsp}, existe un camino hamiltoniano $Q$ de $G$ tal que
+
+\[\length_c(Q) < \length(P) / (d + 1) + 1 \leq k + 1\]
+
+\noindent
+Luego $\length_c(Q) < k + 1$, y como $\length_c(Q)$ y $k$ son enteros, es $\length_c(Q) \leq k$. Esto implica que $(G, c, k)$ es una instancia de SI de \problem{PTSP} rectil'ineo.
+\end{proof}
+\end{theorem}
+
+\subsection{Sobre la representaci'on impl'icita}
+
+Es v'alido cuestionarse si es razonable asumir una representaci'on impl'icita para las instancias de \problem{SR} sobre grillas. Para responder esta pregunta, primero debemos comprender las consecuencias de elegir una representaci'on determinada. Formalmente, un problema de decisi'on es una tupla de dos lenguajes formales de cadenas de bits, uno de instancias de SI y otro de instancias de NO. Esto es, cada instancia es una cadena de bits. Hasta ahora, cada vez que describimos un problema, hablamos de sus instancias como tuplas de objetos matem'aticos abstractos (tales como grafos, funciones y n'umeros enteros), pero nunca especificamos cu'al es la cadena de bits asociada a cada una. Para completar la especificaci'on del problema, deber'iamos indicar cu'al es la cadena de bits asociada a cada instancia abstracta. Este mapeo de instancias abstractas en cadenas de bits se denomina \textit{esquema de representaci'on} \cite[p. 19]{Ga79}. Una \textit{representaci'on} para las instancias es una descripci'on informal de un esquema de representaci'on, pues indica c'omo mapear cada instancia abstracta a otro objeto matem'atico cuya estructura est'a ``m'as cerca'' de ser su cadena de bits asociada. Al fijar una representaci'on para las instancias de un problema, estamos limitando las representaciones que deseamos admisibles a aquellas que podemos transformar, en tiempo polinomial, en la representaci'on fijada. (M'as formalmente, si nuestra representaci'on describe un esquema $e$, otra representaci'on que describe un esquema $e'$ es admisible si existe una funci'on computable en tiempo polinomial $f$, tal que $e = f \circ e'$.) Por lo tanto, al suponer que las instancias de \problem{SR} sobre grillas se representan impl'icitamente, estamos asumiendo que las representaciones admisibles son aquellas que se pueden transformar en tiempo polinomial en una del tipo impl'icita.\\
+
+Lo segundo que debemos analizar es si tiene sentido que las representaciones admisibles sean aquellas de este tipo. Nuestro argumento a favor de esto es que un algoritmo que intenta resolver \problem{SR} sobre grillas con una representaci'on impl'icita, puede obtener toda la informaci'on necesaria sobre la topolog'ia del grafo eficientemente, sin necesidad de tenerla almacenada en memoria. Entre otras cosas, puede:
+
+\begin{itemize}
+\item Determinar si dos v'ertices son adyacentes, en tiempo $O(1)$. Basta comparar las coordenadas de los dos v'ertices en cuesti'on.
+
+\item Iterar la vecindad de un v'ertice, con costo $O(1)$ por iteraci'on. Esto es posible debido a que la vecindad de un v'ertice es el subconjunto de los 4 puntos del plano que lo rodean, que caen dentro de la grilla.
+\end{itemize}
+
+\noindent
+Estas operaciones son las que realizamos usualmente con una representaci'on tradicional de un grafo, por lo que un algoritmo que utiliza la representaci'on impl'icita probablemente no deber'ia verse limitado a la hora de obtener informaci'on topol'ogica del grafo.
+
+En contra de esta representaci'on, tenemos limitaciones a la hora de trabajar con algunas estructuras habituales cuyo tama\~no no es polinomial. Por ejemplo, un camino representado como una secuencia de v'ertices adyacentes de a pares consecutivos podr'ia tener tama\~no exponencialmente m'as grande que el de la instancia, de modo que un algoritmo polinomial que utilice una representaci'on impl'icita no podr'a construir caminos de este tipo.\\
+
+Si bien el \autoref{th:sr_grid_npc} y su demostraci'on asumen una representaci'on impl'icita para la entrada del problema, conjeturamos que tambi'en es posible demostrarlo asumiendo una representaci'on tradicional. Una tal demostraci'on deber'ia utilizar una reducci'on m'as compleja, quiz'as desde otro problema \class{NP-completo}, que condense informaci'on de forma m'as inteligente. La reducci'on utilizada en este trabajo es una traducci'on directa y simple, que se basa en la similitud de los problemas involucrados, reduciendo el esfuerzo necesario para codificar, en forma sint'etica, la informaci'on de una instancia de \problem{PTSP} rectil'ineo como una instancia de \problem{SR} sobre grillas.
+
+Otra consecuencia de asumir esta representaci'on, es que no nos permite concluir que \problem{SR} restringido a superclases de los grafos grilla (por ejemplo, la clase de todos los grafos, o la de los grafos bipartitos) es \class{NP-completo}, pues estas superclases no necesariamente admiten una representaci'on impl'icita, que est'a espec'ificamente dise\~nada para grafos grilla. Luego, una transformaci'on identidad de una instancia de \problem{SR} sobre grillas, a una instancia de \problem{SR} sobre una superclase de grafos, implica realizar una transformaci'on de la representaci'on que podr'ia tomar tiempo supra-polinomial.
+
+\section{\problem{SR} sobre grafos completos es \class{NP-completo}}
+
+En este caso, haremos una reducci'on desde \problem{VC}. Si $G$ es un grafo completo, tenemos completa libertad para construir el camino que cubra $X$, pues podemos movernos entre cualquier par de v'ertices. Esto hace que el problema se convierta, esencialmente, en calcular un vertex cover de $G[X]$.
+
+\begin{lemma}
+\label{le:sr_tau}
+Si $G$ es un grafo completo, $\problem{SR}^*(G, X) = \tau(G[X]) - 1$.
+
+\begin{proof}
+($\leq$) Sea $C = \{u_1, \dots, u_r\}$ un vertex cover m'inimo de $G[X]$. La secuencia $P = \langle u_1, \dots, u_r \rangle$ es un camino en $G$, pues $G$ es completo, y adem'as cubre $X$, con lo cual es una soluci'on factible de \problem{SR} para $(G, X)$. Luego $\problem{SR}^*(G, X) \leq \length(P) = |C| - 1 = \tau(G[X]) - 1$.
+
+($\geq$) Sea $P = \langle u_1, \dots, u_r \rangle$ una soluci'on 'optima de \problem{SR} para $(G, X)$. La observaci'on clave es que todo $u_i$ es extremo de alguna arista de $X$. Si no fuera as'i, podr'iamos sacar cualquiera de los v'ertices que no lo cumplan, y segur'iamos teniendo un camino de $G$, por ser $G$ completo, que sigue cubriendo $X$, y que es de menor longitud. Esto contradice la minimalidad de $P$. Luego, $C = \{u_1, \dots, u_r\}$ est'a contenido en $G[X]$. Como adem'as cubre $X$, es vertex cover de $G[X]$. Por lo tanto, $\tau(G[X]) \leq |C| = \length(P) + 1 = \problem{SR}^*(G, X) + 1$.
+\end{proof}
+\end{lemma}
+
+\begin{theorem}
+\problem{SR} sobre grafos completos es \class{NP-completo}.
+
+\begin{proof}
+La prueba de que est'a en \class{NP} es id'entica a la del \autoref{th:sr_npc}. Veamos que est'a en \class{NP-hard}. Hacemos una reducci'on desde \problem{VC}. Dada una instancia $(G, k)$ de \problem{VC}, con $G = (V, E)$, la transformamos en la instancia $(K(V), E, k - 1)$ de \problem{SR} sobre completos. Es f'acil ver que la transformaci'on es polinomial.
+
+Debemos ver que $(G, k)$ es una instancia de SI de \problem{VC} si y s'olo si $(K(V), E, k - 1)$ es una instancia de SI de \problem{SR} sobre completos. Para esto, basta probar que $\problem{SR}^*(K(V), E) = \tau(G) - 1$.
+
+Llamemos $I$ al grafo formado por los v'ertices aislados de $G$. Notemos que $K(V)[E] \cup I = G$. Por el \autoref{le:sr_tau}, $\problem{SR}^*(K(V), E) = \tau(K(V)[E]) - 1$. Como un vertex cover m'inimo nunca contiene v'ertices aislados, resulta que $\tau(K(V)[E]) = \tau(K(V)[E] \cup I)$. Juntando todo,
+
+\[\problem{SR}^*(K(V), E) = \tau(K(V)[E]) - 1 = \tau(K(V)[E] \cup I) - 1 = \tau(G) - 1\]
+
+\noindent
+como quer'iamos.
+\end{proof}
+\end{theorem}
+
+Notar que este resultado nos da una demostraci'on alternativa de que \problem{SR} general es \class{NP-completo}.
+
+\section{\problem{SR} sobre 'arboles es \class{P}}
+
+En esta secci'on damos un algoritmo que resuelve \problem{SR} sobre 'arboles, en tiempo polinomial, que utiliza la t'ecnica de programaci'on din'amica. Comenzamos definiendo algunas variantes de \problem{SR}, que ser'an 'utiles para describir el algoritmo.
+
+\optpr{s-SR}{$G = (V, E)$ un grafo, $X \subseteq E$, y $s \in V$.}{Un camino de $G$, que empiece en $s$ y que cubra $X$, de longitud m'inima.}
+
+\optpr{st-SR}{$G = (V, E)$ un grafo, $X \subseteq E$, y $s, t \in V$.}{Un camino de $G$, que empiece en $s$, que termine en $t$ y que cubra $X$, de longitud m'inima.}
+
+\optpr{u-SR}{$G = (V, E)$ un grafo, $X \subseteq E$, y $u \in V$.}{Un camino de $G$, que pase por $u$ y que cubra $X$, de longitud m'inima.}
+
+Sea $G$ un 'arbol, y sea $r$ un v'ertice de $G$ cualquiera, que fijamos como ra'iz. Consideremos el ordenamiento jer'arquico de $G$ en el que $r$ es la ra'iz. Para cada v'ertice $t$, ra'iz de un sub'arbol que notamos $T$, definimos los siguientes par'ametros:
+
+\begin{itemize}
+\item[]$\startsr(t) = \problem{s-SR}^*(T, X \cap E(T), t)$
+\item[]$\throughsr(t) = \problem{u-SR}^*(T, X \cap E(T), t)$
+\item[]$\toursr(t) = \problem{st-SR}^*(T, X \cap E(T), t, t)$
+\item[]$\sr(t) = \problem{SR}^*(T, X \cap E(T))$
+\end{itemize}
+
+\noindent
+Informalmente, $\startsr(t)$ es el 'optimo en $T$ entre todos los caminos que empiezan en $t$, $\toursr(t)$ el 'optimo en $T$ entre todos los circuitos que pasan por $t$, $\throughsr(t)$ el 'optimo en $T$ entre todos los caminos que pasan por $t$, y $\sr(t)$ el 'optimo en $T$, sin ninguna restricci'on. Se tiene, por lo tanto, $\problem{SR}^*(G, X) = \sr(r)$.
+
+Diremos que un camino es una soluci'on factible de $\startsr$ para $t$ si es una soluci'on factible de $\problem{s-SR}$ para $(T, X \cap E(T), t)$. Diremos que un camino realiza $\startsr(t)$ si es una soluci'on factible de $\startsr$ para $t$ y tiene longitud $\startsr(t)$. Usamos las mismas convenciones con $\toursr$, $\throughsr$ y $\sr$.
+
+Llamemos $T_1, \dots, T_k$ a los sub'arboles de $t$. Sea $t_i$ la ra'iz del sub'arbol $T_i$, y sea $e_i$ la arista que une $t$ con $t_i$. La \autoref{fig:complejidad_2} ilustra el 'arbol $T$.
+
+\begin{figure}[h]
+	\begin{center}
+		\input{img/complejidad_2.pdf_tex}
+	\end{center}		
+	\caption{El sub'arbol $T$ y sus componentes.}
+	\label{fig:complejidad_2}
+\end{figure}
+
+Con el fin de implementar un algoritmo de programaci'on din'amica, queremos expresar recursivamente $\startsr(t)$, $\toursr(t)$, $\throughsr(t)$ y $\sr(t)$, en funci'on de los sub'arboles de $t$. Comenzamos con un lema que nos ayuda a acotar las posibles formas de los caminos que realizan estos valores. Decimos que un camino de $T$ \textit{entra} en $T_i$, cuando atraviesa la arista $e_i$ desde $t$. Decimos que \textit{sale} de $T_i$, cuando atraviesa la arista $e_i$ desde $t_i$.
+
+\begin{lemma}
+\label{le:opt}
+Un camino que realiza $\startsr(t)$, $\toursr(t)$ 'o $\throughsr(t)$, nunca entra m'as de una vez en un sub'arbol de $t$ y nunca sale m'as de una vez de un sub'arbol de $t$.
+
+\begin{proof}
+Supongamos que un tal camino entra m'as de una vez en un sub'arbol de $t$, y veamos que es posible reconfigurar el camino de modo tal de reducir la longitud del mismo, sin dejar de cubrir ning'un cliente. La transformaci'on consiste en tomar un tramo del camino, que se extienda entre dos entradas consecutivas en un sub'arbol de $t$, y sustituirlo por otro recorrido, tal como indica la \autoref{fig:complejidad_3}-(a). Esta transformaci'on da lugar a un camino v'alido de $G$, y preserva el primer y 'ultimo v'ertice, porque el tramo original y el sustituto comienzan en el mismo v'ertice y terminan en el mismo v'ertice. Adem'as, se puede ver que ambos visitan el mismo conjunto de v'ertices, con lo cual el camino resultante no deja de visitar ning'un v'ertice ni de cubrir ning'un cliente. Luego, si el camino era una soluci'on factible de $x\texttt{-SR}$ para $t$, con $x \in \{\texttt{Start}, \texttt{Tour}, \texttt{Through}\}$, entonces el resultado es una soluci'on de $x\texttt{-SR}$ para $t$. Finalmente, observemos que su longitud es 2 unidades menor respecto del original, lo cual es una contradicci'on, porque supusimos que el original era 'optimo.
+
+La demostraci'on para el caso de m'ultiples salidas de un sub'arbol es an'aloga. La transformaci'on en este caso se puede ver en la \autoref{fig:complejidad_3}-(b).
+
+\begin{figure}[h]
+	\begin{center}
+		\input{img/complejidad_3.pdf_tex}
+	\end{center}		
+	\caption{Transformaci'on del tramo de un camino, que se extiende entre dos entradas o salidas consecutivas. Las aristas etiquetadas con n'umeros indican el recorrido. (a) Dos entradas consecutivas. (b) Dos salidas consecutivas.}
+	\label{fig:complejidad_3}
+\end{figure}
+
+\end{proof}
+\end{lemma}
+
+El \autoref{le:opt} permite caracterizar la forma de los caminos que realizan $\startsr(t)$, $\toursr(t)$ y $\throughsr(t)$.
+
+\begin{corollary}
+Un camino que realiza $\startsr(t)$ tiene la siguiente forma:
+
+\begin{enumerate}
+\item comienza en $t$;
+\item entra en, recorre y sale de sub'arboles $T_{i_1}, \dots, T_{i_{\ell - 1}}$, todos distintos;
+\item entra en, recorre y termina en un sub'arbol $T_{i_{\ell}}$, distinto de los anteriores.
+\end{enumerate}
+\end{corollary}
+
+\begin{corollary}
+Un camino que realiza $\toursr(t)$ tiene la siguiente forma:
+
+\begin{enumerate}
+\item comienza en $t$;
+\item entra en, recorre y sale de sub'arboles $T_{i_1}, \dots, T_{i_{\ell}}$, todos distintos;
+\item termina en $t$.
+\end{enumerate}
+\end{corollary}
+
+\begin{corollary}
+Un camino que realiza $\throughsr(t)$, o bien es un camino que realiza $\startsr(t)$, o bien es un camino que al invertirlo realiza $\startsr(t)$, o bien tiene la siguiente forma:
+
+\begin{enumerate}
+\item comienza, recorre y sale de un sub'arbol $T_{i_1}$;
+\item entra en, recorre y sale de sub'arboles $T_{i_2}, \dots, T_{i_{\ell - 1}}$, todos distintos;
+\item termina de una de las siguientes formas:
+\begin{itemize}
+\item o bien entra, recorre y termina en el sub'arbol $T_{i_1}$;
+\item o bien entra, recorre y termina en un sub'arbol $T_{i_{\ell}}$, distinto de todos los anteriores.
+\end{itemize}
+\end{enumerate}
+\end{corollary}
+
+Conociendo la forma de estos caminos, podemos determinar f'ormulas recursivas para $\startsr(t)$, $\toursr(t)$ y $\throughsr(t)$, pues cumplen la propiedad de subestructura 'optima. Esto es, un camino que realiza uno de estos valores, est'a compuesto por subcaminos 'optimos. Algunas de estas f'ormulas recursivas var'ian seg'un la cantidad de sub'arboles de $t$ que contengan alg'un cliente. Intuitivamente, si tenemos s'olo un sub'arbol con clientes, debemos concentrar nuestra atenci'on all'i, mientras que si hay dos o m'as con alg'un cliente, debemos mantener una visi'on m'as global. Haremos una divisi'on en casos utilizando este criterio. Llamemos $\clients(t)$ a la cantidad de clientes en el sub'arbol $T$, es decir, $\clients(t) = |X \cap E(T)|$.
+
+\subsubsection*{\underline{Caso 1:} ning'un sub'arbol contiene aristas de $X$}
+
+\begin{claim}
+\label{cl:recurrencia_sr_1}
+$\sr(t) = \startsr(t) = \toursr(t) = \throughsr(t) = 0$.
+\end{claim}
+
+\subsubsection*{\underline{Caso 2:} exactamente un sub'arbol tiene aristas de $X$}
+
+Sea $T_p$ tal sub'arbol.
+
+\begin{claim}
+$\startsr(t) = 1 + \startsr(t_p)$.
+
+\begin{proof}[Justificaci'on]
+Un camino que realiza $\startsr(t)$ comienza en $t$, y luego recorre un camino que realiza $\startsr(t_p)$.
+\end{proof}
+
+\begin{proof}
+Sea $P = \langle u_1, \dots, u_s \rangle$ una soluci'on que realiza $\startsr(t)$. El camino comienza en $u_1 = t$. El resto del camino $\langle u_2, \dots, u_s \rangle$ s'olo debe cubrir las aristas de $X$ en $T_p$. 'Esto, junto con la minimalidad de $P$, implican que ese subcamino est'a contenido en $T_p$. Luego, $\langle u_2, \dots, u_s \rangle$ es una soluci'on factible de $\startsr$ para $t_p$. Afirmamos que es 'optima. Si no lo fuese, podr'iamos tomar $P$ e intercambiar dicho subcamino por uno 'optimo, y obtener una soluci'on de $\startsr$ para $t$, de menor longitud. Esto contradice la minimalidad de $P$. Luego
+
+\[\startsr(t) = \length(P) = 1 + \length(\langle u_2, \dots, u_s \rangle) = 1 + \startsr(t_p)\]
+\end{proof}
+\end{claim}
+
+\begin{claim}
+$\toursr(t) = 1 + \toursr(t_p) + 1$.
+
+\begin{proof}[Justificaci'on]
+Un circuito que realiza $\toursr(t)$ comienza en $t$, luego recorre un circuito que realiza $\toursr(t_p)$, y finalmente vuelve a $t$.
+\end{proof}
+\end{claim}
+
+\begin{claim}
+$\throughsr(t) = \min\{\startsr(t), \throughsr(t_p) + 2\}$
+
+\begin{proof}[Justificaci'on]
+Un camino que realiza $\throughsr(t)$ es de \emph{una} de las siguientes formas:
+\begin{itemize}
+\item Empieza en $t$, y es un camino que realiza $\startsr(t)$.
+\item Termina en $t$, y es un camino que al invertirlo realiza $\startsr(t)$.
+\item No empieza ni termina en $t$, y es un camino que se obtiene tomando un camino que realiza $\throughsr(t_p)$, e insert'andole una visita a $t$ justo despu'es de alguna ocurrencia de $t_p$ (es decir, recorriendo adem'as la arista $e_p$, en ambos sentidos).
+\end{itemize}
+\end{proof}
+\end{claim}
+
+\subsubsection*{\underline{Caso 2-1:} alg'un $e_i$, con $i \neq p$, pertenece a $X$}
+
+\begin{claim}
+$\sr(t) = \throughsr(t)$.
+
+\begin{proof}[Justificaci'on.]
+Un camino que realiza $\sr(t)$ debe pasar por $t$, porque $e_p$ y $e_i$ son clientes.
+\end{proof}
+\end{claim}
+
+\subsubsection*{\underline{Caso 2-2:} s'olo $e_p$ pertenece a $X$}
+
+\begin{claim}
+$\sr(t) = \throughsr(t_p)$.
+
+\begin{proof}[Justificaci'on.]
+Hay un camino que realiza $\sr(t)$ que est'a completamente contenido en $T_p$, porque el 'unico cliente fuera de este sub'arbol es $e_p$, que puede cubrirse desde $t_p$.
+\end{proof}
+\end{claim}
+
+\subsubsection*{\underline{Caso 2-3:} ning'un $e_i$ pertenece a $X$}
+
+\begin{claim}
+$\sr(t) = \sr(t_p)$.
+
+\begin{proof}[Justificaci'on.]
+Todos los clientes est'an contenidos en $T_p$.
+\end{proof}
+\end{claim}
+
+\subsubsection*{\underline{Caso 3:} dos o m'as sub'arboles tienen aristas de $X$}
+
+\begin{claim}
+$\toursr(t) = \displaystyle\sum_{\substack{i = 1 \\ \clients(t_i) > 0}}^k(1 + \toursr(t_i) + 1)$.
+
+\begin{proof}[Justificaci'on]
+Un camino que realiza $\toursr(t)$ comienza en $t$, y luego recorre, para cada sub'arbol $T_i$ con clientes, un camino que realiza $\toursr(t_i)$.
+\end{proof}
+\end{claim}
+
+\begin{claim}
+\label{cl:recurrencia_sr_2}
+$\startsr(t) = \min\limits_{\substack{1 \leq p \leq k \\ \clients(t_p) > 0}}\left(\toursr(t - T_p) + 1 + \startsr(t_p)\right)$, donde $\toursr(t - T_p) := \toursr(t) - (\toursr(t_p) + 2)$.
+
+\begin{proof}[Justificaci'on]
+Un camino que realiza $\startsr(t)$ comienza en $t$, luego, para cada sub'arbol $T_i$ con clientes, excepto uno, digamos el $T_p$, recorre un camino que realiza $\toursr(t_i)$, y finalmente recorre un camino que realiza $\startsr(t_p)$.
+\end{proof}
+\end{claim}
+
+Notar que las recurrencias para $\toursr(t)$ y $\startsr(t)$ de este caso, subsumen a las del caso anterior.
+
+\begin{claim}
+\label{cl:throughsr}
+$\throughsr(t) = \min\{\startsr(t), \min\limits_{\substack{1 \leq p \leq k \\ \clients(t_p) > 0}}(\throughsr(t_p) + 1 + \toursr(t - T_p) + 1), \min\limits_{\substack{1 \leq p, q \leq k \\ p \neq q \\ \clients(t_p) > 0 \\ \clients(t_q) > 0}} (\startsr(t_p) + 1 + \toursr(t - T_p - T_q) + 1 + \startsr(t_q))\}$, donde $\toursr(t - T_p - T_q) := \toursr(t) - (\toursr(t_p) + 2) - (\toursr(t_q) + 2)$.
+
+\begin{proof}[Justificaci'on]
+Un camino que realiza $\throughsr(t)$ es de \emph{una} de las siguientes formas:
+\begin{itemize}
+\item Empieza en $t$, y es un camino que realiza $\startsr(t)$.
+\item Termina en $t$, y el camino inverso realiza $\startsr(t)$.
+\item No empieza ni termina en $t$, y es de una de las siguientes formas:
+\begin{itemize}
+\item Empieza y termina en $T_p$, un sub'arbol con clientes, y se obtiene tomando un camino que realiza $\throughsr(t_p)$, e insert'andole, justo despu'es de alguna ocurrencia de $t_p$, un camino que realiza $\toursr(t - T_p)$.
+\item Empieza en $T_p$ y termina en $T_q$ ($p \neq q$), ambos sub'arboles con clientes, y comienza recorriendo, en sentido inverso, un camino que realiza $\startsr(t_p)$, luego recorre un camino que realiza $\toursr(t - T_p - T_q)$, y finalmente recorre un camino que realiza $\startsr(t_q)$.
+\end{itemize}
+\end{itemize}
+\end{proof}
+\end{claim}
+
+\begin{claim}
+$\sr(t) = \throughsr(t)$.
+
+\begin{proof}[Justificaci'on.]
+Un camino que realiza $\sr(t)$ debe pasar por $t$, porque hay dos o m'as sub'arboles de $t$ que contienen clientes.
+\end{proof}
+\end{claim}
+
+Con todas estas f'ormulas recursivas, estamos listos para dar un algoritmo que resuelve el problema.
+
+\begin{theorem}
+\problem{SR} sobre 'arboles est'a en \class{P}. M'as a'un, el problema se puede resolver en tiempo lineal en el tama\~no del grafo de entrada.
+
+\begin{proof}
+Afirmamos que el \autoref{al:sr_arboles} es correcto (esto es, calcula $\problem{SR}^*(G, X)$ cuando $G$ es un 'arbol), y se puede implementar de modo tal que corra en tiempo lineal. La correctitud se sigue de la validez de las recurrencias para $\toursr$, $\startsr$, $\throughsr$ y $\sr$, y de que respetamos las dependencias entre ellas, i. e., usamos las ecuaciones en un orden que no produce dependencias c'iclicas.
+
+\begin{algorithm}
+  \caption{Algoritmo para \problem{SR} sobre 'arboles.}
+  \label{al:sr_arboles}
+  \begin{algorithmic}[1]
+  	\Require $G = (V, E)$ un 'arbol y $X \subseteq E$.
+  	\Ensure $\problem{SR}^*(G, X)$.
+  	\State Sea $r$ un v'ertice de $G$ cualquiera.
+  	\State Ordenar los v'ertices del 'arbol $G$ jer'arquicamente, tomando a $r$ como ra'iz, haciendo una DFS desde $r$.
+	\ForEach{nivel del 'arbol, desde el 'ultimo hasta el primero}
+		\ForEach{v'ertice $t$ del nivel actual}
+			\State Sea $t$ la ra'iz de $T$. Sean $t_1, \dots, t_k$ las ra'ices de los sub'arboles de $t$. Sea $e_i$ la arista entre $t$ y $t_i$.
+			\State Calcular $\clients(t) = |\{e_1, \dots, e_k\} \cap X| + \sum_{i = 1}^k \clients(t_i)$.	
+			\State Calcular $\toursr(t)$, $\startsr(t)$, $\throughsr(t)$ y $\sr(t)$, en ese orden, utilizando las recurrencias dadas, determinando el caso correspondiente seg'un el valor de $\clients(t_i)$, para cada $i$.
+		\EndFor	
+	\EndFor	
+	\Return $\sr(r)$
+  \end{algorithmic}
+\end{algorithm}
+
+Para que corra en tiempo lineal, usamos programaci'on din'amica, memorizando los resultados de $\toursr$, $\startsr$, $\throughsr$ y $\sr$ que vamos calculando. Utilizamos diccionarios con b'usquedas e inserciones en $O(1)$. Espec'ificamente, utilizamos arreglos indexados mediante los v'ertices de $G$, que los representamos como enteros entre $1$ y $|V|$.
+
+El costo del algoritmo est'a dado por el costo de la l'inea 2, m'as el de todas las ejecuciones de las l'ineas 6-7. La l'inea 2 cuesta $O(|V| + |E|)$, que es el costo de una DFS. Se puede ver que tales l'ineas se ejecutan exactamente una vez por cada v'ertice del 'arbol, pues los ciclos anidados recorren cada v'ertice de cada nivel del 'arbol. Notar que la cantidad $k$ de sub'arboles que aparece en la l'inea 5, es
+
+\[k = \left\{
+	\begin{array}{ll}
+		d(t) & \mbox{si } t = r\\
+		d(t) - 1 & \mbox{si no}
+	\end{array}
+\right.\]
+
+\noindent
+con lo cual $k \leq d(t)$. Cada ejecuci'on de la l'inea 6 es $O(1 + k)$ (sumamos $1$, pues $k$ puede valer $0$, pero el costo siempre es positivo). El costo de la l'inea 7 es el costo de realizar los c'omputos indicados por las ecuaciones de recurrencia. Es f'acil ver que todas se pueden calcular en $O(1 + k)$, excepto la de la \autoref{cl:throughsr}, que contiene la siguiente expresi'on,
+
+\[\min\limits_{\substack{1 \leq p, q \leq k \\ p \neq q \\ \clients(t_p) > 0 \\ \clients(t_q) > 0}} (\startsr(t_p) + 1 + \toursr(t - T_p - T_q) + 1 + \startsr(t_q))\]
+
+\noindent
+Como $p$ y $q$ recorren, cada una, un rango de $O(k)$ elementos, el c'omputo na\"ive toma tiempo $O(1 + k^2)$. Podemos reescribir la expresi'on a minimizar del siguiente modo,
+
+\begin{align*}
+\startsr(t_p) + &1 + \toursr(t - T_p - T_q) + 1 + \startsr(t_q) =\\
+=& \text{ }\startsr(t_p) + \startsr(t_q) + 2 + \toursr(t) - \toursr(t_p) - \toursr(t_q) - 4\\
+=& \text{ }\toursr(t) - \Delta_p - \Delta_q
+\end{align*}
+
+\noindent
+donde $\Delta_i = \toursr(t_i) - \startsr(t_i) - 1$. Es $\Delta_i \geq 0$, o equivalentemente $\startsr(t_i) \leq \toursr(t_i) - 1$, pues podemos obtener una soluci'on factible de $\startsr$ para $t_i$ quit'andole la 'ultima arista a cualquier camino que realice $\toursr(t_i)$. Luego, el m'inimo se obtiene para un par de 'indices $p$ y $q$ que maximicen $\Delta_p$ y $\Delta_q$. Para calcularlos, simplemente iteramos sobre $1 \leq i \leq k$, y nos quedamos con los 'indices que realicen los dos valores m'as grandes de $\Delta_i$, sujeto a $\clients(t_i) > 0$. Entonces, 'esta y todas las dem'as ecuaciones se pueden calcular en tiempo $O(1 + k)$.
+
+En definitiva, las l'ineas 6-7 son $O(1 + k)$, con lo cual, como $O(k) = O(d(t))$, todas las ejecuciones de esas l'ineas tienen un costo $O(\sum_{t \in V} (1 + d(t))) = O(|V| + |E|)$. En total, el costo del algoritmo es $O(|V| + |E|)$, como quer'iamos probar.
+\end{proof}
+\end{theorem}
+
+Si bien el \autoref{al:sr_arboles} calcula el valor de una soluci'on 'optima, demostrando as'i el teorema, no exhibe una. Sin embargo, es posible realizarle algunas modificaciones y agregados para darle esa capacidad, manteniendo el mismo tiempo de ejecuci'on. La modificaci'on consiste en almacenar junto con cada valor $\sr(t)$, $\startsr(t)$, $\throughsr(t)$ y $\toursr(t)$, una \textit{marca} que indique c'omo se construye una soluci'on 'optima que realice ese valor. Por ejemplo, en el caso de $\startsr(t)$, tenemos dos recurrencias distintas, la de la \autoref{cl:recurrencia_sr_1} y la \autoref{cl:recurrencia_sr_2}. Para la primera simplemente recordamos que la soluci'on 'optima es el camino $\langle t \rangle$, y para la segunda recordamos un valor de $p$ para el que se realiza el m'inimo. Terminada la ejecuci'on del algoritmo de programaci'on din'amica, todas las marcas necesarias estar'an calculadas. Agregamos una funci'on que, utilizando estas marcas, construya una soluci'on 'optima. Este procedimiento toma la ra'iz $r$ de $G$ y construye un camino, siguiendo las marcas y la estructura de una soluci'on 'optima, indicada por las recurrencias. Continuando con el ejemplo de $\startsr(t)$, en el caso de la \autoref{cl:recurrencia_sr_2} tomamos el valor de $p$ dado por la marca guardada, calculamos recursivamente una soluci'on 'optima $P_1$ que realice $\toursr(t - T_p)$, una soluci'on 'optima $P_2$ que realice $\startsr(t_p)$, y la respuesta es $P_1 \circ \langle t \rangle \circ P_2$.

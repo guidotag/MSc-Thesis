@@ -1,0 +1,182 @@
+\documentclass[11pt,a4paper,twoside]{book}
+
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,activeacute,es-tabla]{babel}
+\usepackage[left=3cm,right=3cm,bottom=3.5cm,top=3.5cm]{geometry}
+\usepackage{euler}			% Texto matematico estilo Concrete Mathematics
+\usepackage{color}		
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{wrapfig}
+\usepackage[font=small,labelfont=bf]{caption}
+
+\usepackage{algpseudocode}
+\let\oldReturn\Return
+\renewcommand{\Return}{\State\oldReturn}
+\usepackage{algorithm}
+\floatname{algorithm}{Algoritmo}
+\renewcommand{\algorithmicrequire}{\textbf{Entrada:}}
+\renewcommand{\algorithmicensure}{\textbf{Salida:}}
+
+\algdef{SE}[FUNCTION]{Function}{EndFunction}%
+   [2]{\textproc{ #1}(#2)}%\ifthenelse{\equal{#2}{}}{}{(#2)}}%
+   {\algorithmicend\ \algorithmicfunction}%
+\algtext*{EndFunction}
+\algtext*{EndIf}
+\algtext*{EndFor}
+\algtext*{EndWhile}
+
+\algnewcommand\algorithmicforeach{\textbf{for each}}
+\algdef{S}[FOR]{ForEach}[1]{\algorithmicforeach\ #1\ \algorithmicdo}
+
+\graphicspath{{img/}}
+
+\renewcommand{\And}{\textbf{and} }
+\newcommand{\Or}{\textbf{or} }
+\newcommand{\True}{\textbf{true} }
+\newcommand{\False}{\textbf{false} }
+\newcommand{\Break}{\textbf{break} }
+
+\newcommand{\todo}[1]{{\noindent \Large \color{red}TO-DO: \textbf{#1}}}
+\newcommand{\problem}[1]{\textnormal{\textsf{#1}}}
+\newcommand{\dist}{\textnormal{dist}}
+\newcommand{\distmax}{\overline{\textnormal{dist}}}
+\newcommand{\length}{\textnormal{length}}
+\newcommand{\weight}{\textnormal{weight}}
+\newcommand{\ceil}[1]{\left\lceil #1 \right\rceil}
+\newcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}
+\newcommand{\mst}{\textnormal{MST}}
+\newcommand{\class}[1]{\textnormal{\textbf{#1}}}
+\newcommand{\poly}{\textnormal{poly}}
+\newcommand{\prev}{\textnormal{prev}}
+\newcommand{\cov}{\textnormal{cov}}
+\newcommand{\startsr}{\texttt{Start-SR}}
+%\newcommand{\eendsr}{\texttt{End-SR}}
+\newcommand{\toursr}{\texttt{Tour-SR}}
+\newcommand{\throughsr}{\texttt{Through-SR}}
+\newcommand{\sr}{\texttt{SR}}
+\newcommand{\clients}{\texttt{X}}
+\newcommand{\val}{\textnormal{val}}
+\newcommand{\size}{\textnormal{size}}
+
+\newtheorem{theorem}{Teorema}[chapter]
+\newtheorem{lemma}{Lema}[chapter]
+\newtheorem{corollary}{Corolario}[chapter]
+\newtheorem{claim}{Afirmaci\'on}[chapter]
+\newtheorem{proposition}{Proposici\'on}[chapter]
+\theoremstyle{definition}
+\newtheorem{definition}{Definici\'on}[chapter]
+\newtheorem{remark}{Observaci\'on}[chapter]
+
+%\newcommand{\theoremautorefname}{Teorema}
+\newcommand{\lemmaautorefname}{Lema}
+\newcommand{\corollaryautorefname}{Corolario}
+\newcommand{\claimautorefname}{Afirmaci\'on}
+\newcommand{\propositionautorefname}{Proposici\'on}
+\newcommand{\definitionautorefname}{Definici\'on}
+\newcommand{\remarkautorefname}{Observaci\'on}
+\newcommand{\algorithmautorefname}{Algoritmo}
+
+% Macro para escribir problemas.
+\newcommand{\decpr}[3]{
+%     \decpr{NAME}{INSTANCE}{QUESTION}
+\begin{list}{}{
+\setlength{\leftmargin}{0.1in}
+\setlength{\rightmargin}{0.1in}
+\setlength{\parsep}{0pt}
+\setlength{\itemsep}{2pt}
+\setlength{\topsep}{\itemsep}
+\setlength{\partopsep}{\itemsep}
+}
+\item
+{\problem{#1}}
+\item
+{INSTANCIA: #2}
+\item
+{SALIDA: #3}
+\end{list}
+\vspace{1mm}
+}
+
+\newcommand{\optpr}[3]{
+%     \optpr{NAME}{INSTANCE}{QUESTION}
+
+\begin{list}{}{
+\setlength{\leftmargin}{0.1in}
+\setlength{\rightmargin}{0.1in}
+\setlength{\parsep}{0pt}
+\setlength{\itemsep}{2pt}
+\setlength{\topsep}{\itemsep}
+\setlength{\partopsep}{\itemsep}
+}
+\item
+{\problem{#1}}
+\item
+{INSTANCIA: #2}
+\item
+{SALIDA: #3}
+\end{list}
+\vspace{1mm}
+}
+
+% Fuente estilo Concrete Mathematics.
+%\renewcommand{\rmdefault}{pplx}
+
+% Configuracion de hyperref
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue}
+
+\begin{document}
+
+%%%% CARATULA
+\def\titulo{Licenciado }
+
+\def\autor{Guido Tagliavini Ponce}
+\def\tituloTesis{Star Routing: Entre Ruteo de Veh'iculos y Vertex Cover}
+\def\runtitulo{Star Routing: Entre Ruteo de Veh'iculos y Vertex Cover}
+\def\runtitle{Star Routing: Between Vehicle Routing and Vertex Cover}
+\def\director{Diego Delle Donne}
+\def\codirector{Javier Marenco}
+\def\lugar{Buenos Aires, 2017}
+\input{caratula}
+
+%%%% ABSTRACTS, AGRADECIMIENTOS Y DEDICATORIA
+\frontmatter
+\pagestyle{empty}
+\input{abstract_esp.tex}
+
+\cleardoublepage
+\input{abstract_en.tex}
+
+\cleardoublepage
+\input{agradecimientos.tex}
+
+\cleardoublepage
+\tableofcontents
+
+\mainmatter
+\pagestyle{headings}
+
+\input{introduccion}
+\cleardoublepage
+\input{ss}
+\cleardoublepage
+\input{complejidad}
+\cleardoublepage
+\input{exactos}
+\cleardoublepage
+\input{aproximados}
+\cleardoublepage
+\input{futuro}
+\cleardoublepage
+\appendix
+\input{anexo}
+
+%%%% BIBLIOGRAFIA
+\backmatter
+\bibliographystyle{plain}
+\bibliography{tesis}
+
+\end{document}

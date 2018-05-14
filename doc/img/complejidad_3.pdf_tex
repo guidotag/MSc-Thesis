@@ -1,0 +1,84 @@
+%% Creator: Inkscape inkscape 0.48.4, www.inkscape.org
+%% PDF/EPS/PS + LaTeX output extension by Johan Engelen, 2010
+%% Accompanies image file 'complejidad_3.pdf' (pdf, eps, ps)
+%%
+%% To include the image in your LaTeX document, write
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics{<filename>.pdf}
+%% To scale the image, write
+%%   \def\svgwidth{<desired width>}
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics[width=<desired width>]{<filename>.pdf}
+%%
+%% Images with a different path to the parent latex file can
+%% be accessed with the `import' package (which may need to be
+%% installed) using
+%%   \usepackage{import}
+%% in the preamble, and then including the image with
+%%   \import{<path to file>}{<filename>.pdf_tex}
+%% Alternatively, one can specify
+%%   \graphicspath{{<path to file>/}}
+%% 
+%% For more information, please see info/svg-inkscape on CTAN:
+%%   http://tug.ctan.org/tex-archive/info/svg-inkscape
+%%
+\begingroup%
+  \makeatletter%
+  \providecommand\color[2][]{%
+    \errmessage{(Inkscape) Color is used for the text in Inkscape, but the package 'color.sty' is not loaded}%
+    \renewcommand\color[2][]{}%
+  }%
+  \providecommand\transparent[1]{%
+    \errmessage{(Inkscape) Transparency is used (non-zero) for the text in Inkscape, but the package 'transparent.sty' is not loaded}%
+    \renewcommand\transparent[1]{}%
+  }%
+  \providecommand\rotatebox[2]{#2}%
+  \ifx\svgwidth\undefined%
+    \setlength{\unitlength}{317.30315722bp}%
+    \ifx\svgscale\undefined%
+      \relax%
+    \else%
+      \setlength{\unitlength}{\unitlength * \real{\svgscale}}%
+    \fi%
+  \else%
+    \setlength{\unitlength}{\svgwidth}%
+  \fi%
+  \global\let\svgwidth\undefined%
+  \global\let\svgscale\undefined%
+  \makeatother%
+  \begin{picture}(1,1.16022104)%
+    \put(0,0){\includegraphics[width=\unitlength]{complejidad_3.pdf}}%
+    \put(0.21600395,1.08585281){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$t$}}}%
+    \put(0.09326078,0.82309388){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$2$}}}%
+    \put(0.12672574,0.76450282){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$3$}}}%
+    \put(0.11793328,1.04717884){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$1$}}}%
+    \put(0.20919088,0.95208771){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$4$}}}%
+    \put(0.26323241,0.92330922){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$6$}}}%
+    \put(0.37926114,1.13662117){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$5$}}}%
+    \put(0.77659803,1.08301422){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$t$}}}%
+    \put(0.65549909,0.82189954){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$3$}}}%
+    \put(0.68896404,0.76330845){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$4$}}}%
+    \put(0.68017162,1.04598444){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$2$}}}%
+    \put(0.94149948,1.13542679){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$1$}}}%
+    \put(0.06213472,0.9527195){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$t_i$}}}%
+    \put(0.62425237,0.94940318){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$t_i$}}}%
+    \put(0.4448295,0.61536535){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{(a)}}}%
+    \put(0.21600381,0.47381304){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$t$}}}%
+    \put(0.0932608,0.21105702){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$4$}}}%
+    \put(0.12672566,0.15246655){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$5$}}}%
+    \put(0.11793323,0.43513963){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$1$}}}%
+    \put(0.20919082,0.34004951){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$3$}}}%
+    \put(0.26323229,0.31127136){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$6$}}}%
+    \put(0.37926114,0.52458101){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$2$}}}%
+    \put(0.77659792,0.47097451){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$t$}}}%
+    \put(0.65549902,0.20986274){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$1$}}}%
+    \put(0.688964,0.15127219){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$2$}}}%
+    \put(0.68017153,0.43394527){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$3$}}}%
+    \put(0.9414994,0.52338665){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$4$}}}%
+    \put(0.06213291,0.3406761){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$t_i$}}}%
+    \put(0.62424745,0.33735988){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$t_i$}}}%
+    \put(0.4448295,0.00332389){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{(b)}}}%
+  \end{picture}%
+\endgroup%

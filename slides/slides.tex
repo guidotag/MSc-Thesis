@@ -1,0 +1,1019 @@
+\documentclass{beamer}
+\usepackage[spanish,activeacute,es-tabla]{babel}
+\usepackage[latin1]{inputenc}
+
+%\usepackage[linesnumbered,ruled,vlined]{algorithm2e} \dontprintsemicolon % In
+% order to use, for example, "\begin{algorithm}".
+\usepackage{amssymb,amsmath}
+\usepackage{xcolor}
+%\usepackage{amsfonts}
+\usepackage{graphicx}
+%\usepackage{epsfig}
+\usepackage{color}
+%\usepackage{colortbl}
+%\usepackage{arrayjobx}
+\usepackage{url}
+\usepackage{euler}
+
+\mode<presentation>
+%\usetheme[secheader]{Boadilla}
+\usetheme{Singapore}
+%\usetheme{umbc4}
+%\usecolortheme{red}
+\usefonttheme{serif}
+%\useinnertheme{umbcboxes}
+%\useinnertheme{rounded}
+%\useoutertheme{sidebar}
+
+\graphicspath{{img/}}
+
+\newcommand{\highlight}[1]{\colorbox{yellow}{$\displaystyle #1$}}
+\newcommand{\class}[1]{\textnormal{\textbf{#1}}}
+\newcommand{\length}{\textnormal{length}}
+
+\setlength{\fboxrule}{4pt}
+
+\newcommand{\probl}[1]{\textnormal{\textsf{#1}}}
+
+\newtranslation[to=Spanish]{Theorem}{Teorema}
+\newtranslation[to=Spanish]{Definition}{Definici\'on}
+
+\makeatletter
+\setbeamertemplate{theorem begin}
+{%
+\begin{\inserttheoremblockenv}
+  {}{\usebeamerfont*{block title}\usebeamercolor[fg]{block title}%
+  \textbf{\inserttheoremname}
+  }
+  \normalfont
+  }
+  \setbeamertemplate{theorem end}{\end{\inserttheoremblockenv}}
+\makeatother
+
+\newtheorem*{thm}{Teorema}
+\newtheorem{lem}{Lema}
+\newtheorem{prop}{Proposici\'on}
+\newtheorem{conj}{Conjetura}
+\newtheorem{defn}{Definici\'on}
+\newtheorem{cor}{Corolario}
+\newtheorem{rem}{Observaci\'on}
+\newtheorem{qst}{Pregunta}
+
+\newcommand{\decpr}[3]{
+%     \decpr{NAME}{INSTANCE}{QUESTION}
+\begin{list}{}{
+\setlength{\leftmargin}{0.1in}
+\setlength{\rightmargin}{0.1in}
+\setlength{\parsep}{0pt}
+\setlength{\itemsep}{2pt}
+\setlength{\topsep}{\itemsep}
+\setlength{\partopsep}{\itemsep}
+}
+\item
+{\probl{#1}}
+\item
+{INSTANCIA: #2}
+\item
+{SALIDA: #3}
+\end{list}
+\vspace{1mm}
+}
+
+\newcommand{\optpr}[3]{
+%     \optpr{NAME}{INSTANCE}{QUESTION}
+
+\begin{list}{}{
+\setlength{\leftmargin}{0.1in}
+\setlength{\rightmargin}{0.1in}
+\setlength{\parsep}{0pt}
+\setlength{\itemsep}{2pt}
+\setlength{\topsep}{\itemsep}
+\setlength{\partopsep}{\itemsep}
+}
+\item
+{\probl{#1}}
+\item
+{INSTANCIA: #2}
+\item
+{SALIDA: #3}
+\end{list}
+\vspace{1mm}
+}
+
+\title{\probl{STAR ROUTING}: Entre Ruteo de Veh\'iculos y Vertex Cover}
+
+\author[]{Guido Tagliavini Ponce	}
+
+\date{2 de agosto de 2017}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}
+\frametitle{El problema}
+\pause
+\vspace{5mm}
+\begin{figure}
+	\begin{center}
+		\input{img/motivacion_1.pdf_tex}
+	\end{center}	
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{El problema}
+\vspace{5mm}
+\begin{figure}
+	\begin{center}
+		\input{img/motivacion_2.pdf_tex}
+	\end{center}	
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{El problema}
+\vspace{5mm}
+\begin{figure}
+	\begin{center}
+		\input{img/motivacion_2.pdf_tex}
+	\end{center}	
+\end{figure}
+\begin{flushleft}
+	\includegraphics[scale=0.15]{img/truck.jpg}
+\end{flushleft}
+\end{frame}
+
+\begin{frame}
+\frametitle{El problema}
+\vspace{5mm}
+\begin{figure}
+	\begin{center}
+		\input{img/motivacion_3.pdf_tex}
+	\end{center}	
+\end{figure}
+\begin{flushleft}
+	\includegraphics[scale=0.15]{img/truck.jpg}
+\end{flushleft}
+\end{frame}
+
+\begin{frame}
+\frametitle{Modelado del problema}
+\vspace{5mm}
+\begin{figure}
+	\begin{center}
+		\input{img/modelado_1.pdf_tex}
+	\end{center}	
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Modelado del problema}
+\vspace{5mm}
+\begin{figure}
+	\begin{center}
+		\input{img/modelado_2.pdf_tex}
+	\end{center}	
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Modelado del problema}
+\vspace{5mm}
+\begin{figure}
+	\begin{center}
+		\input{img/modelado_3.pdf_tex}
+	\end{center}	
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Descripci\'on formal}
+
+\pause
+
+\optpr{STAR ROUTING}{$G = (V, E)$ un grafo simple y no dirigido, y $X \subseteq E$.}{Un camino de $G$, que \textit{cubra} $X$, de longitud m\'inima.}
+
+Convenciones:
+\pause
+\begin{itemize}
+\item Abreviamos \probl{SR} a \probl{STAR ROUTING}.
+\pause
+\item A las aristas de $X$ las llamamos \textit{clientes}.
+\pause
+\item Decimos que un v'ertice $u$ \textit{cubre} a una arista $e$, si $u$ es un extremo de $e$. Este concepto se extiende a conjuntos de v'ertices, caminos, y conjuntos de aristas.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Descripci\'on formal}
+
+\optpr{STAR ROUTING}{$G = (V, E)$ un grafo simple y no dirigido, y $X \subseteq E$.}{Un camino de $G$, que \textit{cubra} $X$, de longitud m\'inima.}
+
+Observaciones:
+\pause
+\begin{itemize}
+\item $G$ es cualquier grafo, no necesariamente una grilla.
+\pause
+\item $G$ no tiene pesos. Buscamos optimizar la \emph{cantidad} de aristas que usa el camino.
+\pause
+\item La respuesta del problema es un camino. No nos interesa conocer las esquinas donde debemos detenernos.
+\pause
+\item La versi'on de decisi'on asociada al problema es la obvia.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Ejemplos}
+\vspace{5mm}
+\begin{figure}
+	\begin{center}
+		\input{img/ejemplos.pdf_tex}
+	\end{center}	
+\end{figure}
+(a) y (b) son soluciones 'optimas.
+
+(c) es una soluci'on factible pero no 'optima.
+\end{frame}
+
+\begin{frame}
+\frametitle{Estructura de la tesis y presentaci\'on}
+
+\pause
+
+\begin{enumerate}
+\item[] \textbf{Parte 1}: Estudio de la complejidad de \probl{SR}, restringiendo $G$ a distintas clases de grafos.
+\vspace{2mm}
+\pause
+\item[] \textbf{Parte 2}: Algoritmos exactos para \probl{SR}, para $G$ arbitrario.
+\vspace{2mm}
+\pause
+\item[] \textbf{Parte 3}: Algoritmos aproximados para \probl{SR}, para distintas restricciones de $G$.
+\end{enumerate}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+\begin{Large}
+\textbf{Parte 1: Complejidad de \probl{SR}}
+\end{Large}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Complejidad de \probl{SR} sobre grafos completos}
+
+\pause
+
+\begin{thm}
+\probl{SR} sobre grafos completos es \class{NP-c}.
+\end{thm}
+
+\pause
+\vspace{3mm}
+
+Idea de la demo: reducci'on desde \probl{VERTEX COVER}.\\
+
+\pause
+\vspace{3mm}
+
+\decpr{VC}{$G = (V, E)$ un grafo y $k \in \mathbb{Z}_{\geq 0}$.}{?`Existe un subconjunto de $V$ que cubra $E$, de cardinal menor o igual a $k$?}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Complejidad de \probl{SR} sobre grafos completos}
+
+\begin{thm}
+\probl{SR} sobre grafos completos es \class{NP-c}.
+\end{thm}
+
+\begin{figure}
+	\begin{center}
+		\input{img/sr_completos_1.pdf_tex}
+	\end{center}	
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Complejidad de \probl{SR} sobre grafos completos}
+
+\begin{thm}
+\probl{SR} sobre grafos completos es \class{NP-c}.
+\end{thm}
+
+\begin{figure}
+	\begin{center}
+		\input{img/sr_completos_2.pdf_tex}
+	\end{center}	
+\end{figure}
+
+\pause
+
+\begin{cor}
+\probl{SR} general es \class{NP-c}.
+\end{cor}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Complejidad de \probl{SR} sobre 'arboles}
+
+\pause
+
+\begin{thm}
+\probl{SR} sobre 'arboles est'a en \class{P}. M'as a'un, hay un algoritmo de tiempo lineal que lo resuelve.
+\end{thm}
+
+\pause
+\vspace{3mm}
+
+Idea de la demo:
+\pause
+\begin{itemize}
+	\item Mirar el 'arbol como un 'arbol enraizado.
+	\pause
+	\item Algoritmo: PD bottom-up, desde las hojas hacia la ra'iz, calculando varios valores auxiliares, a partir de los cuales calculamos el resultado final.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Complejidad de \probl{SR} sobre grafos grilla}
+
+\pause
+
+\begin{thm}
+\probl{SR} sobre grafos grilla, usando una \textit{representaci'on impl'icita}, es \class{NP-c}.
+\end{thm}
+
+\pause
+\vspace{3mm}
+?`Qu'e es una representaci'on impl'icita? \pause Es una forma de representaci'on f'isica de la entrada (el grafo $G$ y el subconjunto de aristas $X$).
+
+\pause
+
+\begin{figure}
+	\begin{center}
+		\input{img/rep_implicita.pdf_tex}
+	\end{center}	
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Complejidad de \probl{SR} sobre grafos grilla}
+
+\begin{thm}
+\probl{SR} sobre grafos grilla, usando una \textit{representaci'on impl'icita}, es \class{NP-c}.
+\end{thm}
+
+\vspace{3mm}
+
+Observaciones:
+\pause
+\begin{itemize}
+	\item No es polinomialmente equivalente a una representaci'on tradicional.
+	\pause
+	\item Tiene sentido para la clase de grafos grilla, que tienen una topolog'ia regular.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Complejidad de \probl{SR} sobre grafos grilla}
+
+\begin{thm}
+\probl{SR} sobre grafos grilla, usando una representaci'on impl'icita, es \class{NP-c}.
+\end{thm}
+
+\vspace{3mm}
+
+Idea de la demo: reducci'on desde \probl{PATH TSP} rectil'ineo.
+
+\pause
+\vspace{3mm}
+
+\decpr{\probl{PTSP}}{$G = (V, E)$ un grafo completo, $c: E \to \mathbb{Z}_{\geq 0}$ los pesos de $G$ y $k \in \mathbb{Z}_{\geq 0}$.}{?`Existe un camino hamiltoniano de $G$, de peso menor o igual a $k$?}
+
+\pause
+
+Si adem'as los v'ertices de $V$ son puntos del plano, de coordenadas enteras, y $c$ es la distancia Manhattan entre ellos, entonces el problema se llama \probl{PTSP} rectil'ineo. Este problema es \class{NP-c}.
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Complejidad de \probl{SR} sobre grafos grilla}
+
+\begin{thm}
+\probl{SR} sobre grafos grilla, usando una representaci'on impl'icita, es \class{NP-c}.
+\end{thm}
+
+\vspace{3mm}
+
+Idea de la demo: reducci'on desde \probl{PATH TSP} rectil'ineo.
+
+\begin{figure}
+	\begin{center}
+		\input{img/sr_grillas_npc_1.pdf_tex}
+	\end{center}	
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Complejidad de \probl{SR} sobre grafos grilla}
+
+\begin{thm}
+\probl{SR} sobre grafos grilla, usando una representaci'on impl'icita, es \class{NP-c}.
+\end{thm}
+
+\pause
+
+\vspace{3mm}
+
+Problema: un recorrido que cubre los clientes de \probl{SR} podr'ia ser m'as corto que uno que visita los v'ertices de \probl{PTSP}.
+
+\pause
+
+\begin{figure}
+	\begin{center}
+		\input{img/sr_grillas_npc_2.pdf_tex}
+	\end{center}	
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Complejidad de \probl{SR} sobre grafos grilla}
+
+\begin{thm}
+\probl{SR} sobre grafos grilla, usando una representaci'on impl'icita, es \class{NP-c}.
+\end{thm}
+
+Soluci'on: refinar la grilla.
+
+\pause
+
+\vspace{3mm}
+
+\begin{figure}
+	\begin{center}
+		\input{img/sr_grillas_npc_3.pdf_tex}
+	\end{center}	
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Complejidad de \probl{SR} sobre grafos grilla}
+
+\begin{thm}
+\probl{SR} sobre grafos grilla, usando una representaci'on impl'icita, es \class{NP-c}.
+\end{thm}
+
+Soluci'on: refinar la grilla.
+
+\vspace{3mm}
+
+\begin{figure}
+	\begin{center}
+		\input{img/sr_grillas_npc_4.pdf_tex}
+	\end{center}	
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Complejidad de \probl{SR} sobre grafos grilla}
+
+\begin{thm}
+\probl{SR} sobre grafos grilla, usando una representaci'on impl'icita, es \class{NP-c}.
+\end{thm}
+
+Soluci'on: refinar la grilla.
+
+\vspace{3mm}
+
+\begin{figure}
+	\begin{center}
+		\input{img/sr_grillas_npc_5.pdf_tex}
+	\end{center}	
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Complejidad de \probl{SR} sobre grafos grilla}
+
+\begin{thm}
+\probl{SR} sobre grafos grilla, usando una representaci'on impl'icita, es \class{NP-c}.
+\end{thm}
+
+Soluci'on: refinar la grilla.
+
+\vspace{3mm}
+
+\begin{figure}
+	\begin{center}
+		\input{img/sr_grillas_npc_6.pdf_tex}
+	\end{center}	
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Complejidad de \probl{SR}}
+
+\begin{thm}
+\probl{SR} sobre grafos grilla, usando una representaci'on impl'icita, es \class{NP-c}.
+\end{thm}
+
+\pause
+
+\vspace{3mm}
+
+Idea clave de la demo:
+\pause
+\begin{itemize}
+	\item Cuanto m'as refinamos, m'as se parecen los caminos que cubren los clientes de \probl{SR} a los caminos que visitan los v'ertices de \probl{PTSP}. 
+	\pause
+	\item Para una cantidad suficientemente grande de refinamientos, mirar una soluci'on de \probl{SR} (en el grafo transformado) es ``muy similar'' a mirar una soluci'on de \probl{PTSP} (en el grafo original).
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\begin{center}
+\begin{Large}
+\textbf{Parte 2: Algoritmos exactos para \probl{SR}}
+\end{Large}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Algoritmos exactos para \probl{SR}}
+
+\textbf{Algoritmo 1: backtracking}
+\pause
+\begin{itemize}
+	\item Idea: cada soluci'on factible de \probl{SR} para $(G, X)$ se puede pensar como el orden en que cubrimos los clientes de $X$.
+	\pause
+	\item Algoritmo: backtracking que genera todas las permutaciones de $X$ y para cada una determina el m'inimo costo de recorrerlos en ese orden.
+	\pause
+	\item Otros backtrackings t'ipicos, por ejemplo para la generaci'on de caminos simples, no funcionan.
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Algoritmos exactos para \probl{SR}}
+
+\textbf{Algoritmo 2: programaci'on din'amica}
+\pause
+\begin{itemize}
+	\item Idea:
+	\begin{itemize}
+		\item Supongamos que llevamos construido un camino parcial $P_1$, que termina en un v'ertice $u$, y le resta cubrir un subconjunto de clientes $F$.
+		\pause
+		\item Ahora supongamos que tenemos otro camino parcial $P_2$ en las mismas condiciones.
+		\pause
+		\item Los dos caminos pueden completarse a una soluci'on factible, en forma 'optima, del mismo modo.
+	\end{itemize}
+	\pause
+	\item Definimos 
+\begin{align*}
+J(u, F) =&\text{ m'inima longitud de un camino}\\
+	&\text{ que empieza en } u \text{ y cubre }F
+\end{align*}
+	\pause
+	\item Algoritmo: PD para calcular $J$. Buscamos $\probl{SR}^*(G, X) = \min\limits_{e \in X}\left(\min\{J(e_1, X - \{e\}), J(e_2, X - \{e\})\}\right)$. 
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Optimizaci'on v'ia funciones de acotaci'on}
+
+\pause
+
+\begin{itemize}
+	\item Optimizamos los algoritmos mediante \textit{funciones de acotaci'on}.
+	\pause
+	\item Idea:
+	\begin{itemize}
+		\item Supongamos que llevamos construido un camino parcial $P$, que termina en $u$ y le falta cubrir $F$. Llamemos $L_{\text{parcial}}$ a su longitud.
+		\pause
+		\item Supongamos que para completar $P$ a una soluci'on factible, necesitamos longitud al menos $L_{\text{resto}}$.
+		\pause
+		\item Sea $L_{\text{opt}}$ la longitud de la mejor soluci'on encontrada hasta el momento.
+		\pause
+		\item Entonces, si $L_{\text{parcial}} + L_{\text{resto}} > L_{\text{opt}}$, podemos abortar el c'omputo de $P$.
+		\pause
+	\end{itemize}
+	\pause	
+	\item $L_{\text{resto}}$ depende de $u$ y $F$. 
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Optimizaci'on v'ia funciones de acotaci'on}
+
+\begin{itemize}
+\item Una \textit{funci'on de acotaci'on} es una funci'on $B$ tal que $B(u, F)$  es una cota inferior de la m'inima longitud necesaria para completar un (cualquier) camino parcial que termina en $u$ y que le resta cubrir $F$.
+
+\pause
+
+\item Uso: si $L_{\text{parcial}} + B(u, F) > L_{\text{opt}}$, abortamos la construcci'on del camino actual.
+
+\pause
+
+\item Ejemplos:
+\pause
+\begin{itemize}
+	\item $B(u, F) = 0$. Al menos necesitamos 0 aristas m'as.
+	\pause
+	\item $B(u, F) = \tau(G[F]) - 1$. Si falta cubrir $F$, el camino restante debe contener un vertex cover de $G[F]$.
+	\pause
+	\item $B(u, F) = \left\lfloor |F| / 3 \right\rfloor - 1$.
+\end{itemize}
+\end{itemize}
+ 
+\end{frame}
+
+\begin{frame}
+\frametitle{Implementaci'on y experimentaci'on}
+
+Implementaci'on:
+\pause
+\begin{itemize}
+	\item Ambos algoritmos son exponenciales.
+	\pause
+	\item Se implementaron las funciones de acotaci'on para podar ramas (Branch \& Bound).
+	\pause
+	\item Se implementaron los dos algoritmos, con y sin funciones de acotaci'on.
+\end{itemize}
+
+\pause
+
+\vspace{3mm}
+Resultados experimentales:
+\pause
+\begin{itemize}
+	\item Las funciones de acotaci'on acortan el tiempo de c'omputo varios 'ordenes de magnitud.
+	\pause
+	\item Los algoritmos no logran correr instancias de m'as de 25 clientes en menos de 1h.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+\begin{Large}
+\textbf{Parte 3: Algoritmos aproximados para \probl{SR}}
+\end{Large}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Algoritmos aproximados}
+
+\pause
+
+\begin{itemize}
+	\item Un algoritmo $\alpha$-aproximado $\mathcal{A}$ para un problema de optimizaci'on $\Pi$ es un algoritmo \emph{polinomial}, que cumple que para toda instancia $I$ de $\Pi$,
+	
+	\pause
+	
+	\begin{enumerate}
+		\item $\mathcal{A}(I)$ es una soluci'on factible (no necesariamente exacta).
+		\pause
+		\item $\text{val}(\mathcal{A}(I)) \leq \alpha\text{ }OPT(I)$
+	\end{enumerate}
+	
+	\pause
+	
+	\item Una estrategia frecuente para construir algoritmos aproximados para un problema $\Pi_1$ consiste en tomar un algoritmo aproximado $\mathcal{A}$ para otro problema $\Pi_2$, y usarlo como caja negra dentro de un algoritmo aproximado para $\Pi_1$.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Algoritmo aproximado para \probl{SR} sobre grillas}
+
+\pause
+
+\begin{thm}
+Sea $\mathcal{A}$ un algoritmo $\alpha$-aproximado para \probl{PTSP} rectil'ineo. Existe un algoritmo $3\alpha$-aproximado para \probl{SR} sobre grillas, que usa a $\mathcal{A}$ como caja negra.
+\end{thm}
+
+\pause
+
+\vspace{3mm}
+
+Como se conoce un algoritmo $(3/2)$-aproximado para \probl{PTSP} \textit{m'etrico}...
+
+\pause
+
+\begin{cor}
+Existe un algoritmo $(9/2)$-aproximado para \probl{SR} sobre grillas.
+\end{cor}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Algoritmo aproximado para \probl{SR} sobre grillas}
+
+\begin{thm}
+Sea $\mathcal{A}$ un algoritmo $\alpha$-aproximado para \probl{PTSP} rectil'ineo. Existe un algoritmo $3\alpha$-aproximado para \probl{SR} sobre grillas, que usa a $\mathcal{A}$ como caja negra.
+\end{thm}
+
+\vspace{3mm}
+
+\begin{figure}
+	\begin{center}
+		\input{img/sr_grillas_aproximado_1.pdf_tex}
+	\end{center}	
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Algoritmo aproximado para \probl{SR} sobre grillas}
+
+\begin{thm}
+Sea $\mathcal{A}$ un algoritmo $\alpha$-aproximado para \probl{PTSP} rectil'ineo. Existe un algoritmo $3\alpha$-aproximado para \probl{SR} sobre grillas, que usa a $\mathcal{A}$ como caja negra.
+\end{thm}
+
+\vspace{3mm}
+
+\begin{figure}
+	\begin{center}
+		\input{img/sr_grillas_aproximado_2.pdf_tex}
+	\end{center}	
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Algoritmo aproximado para \probl{SR} sobre grillas}
+
+\begin{thm}
+Sea $\mathcal{A}$ un algoritmo $\alpha$-aproximado para \probl{PTSP} rectil'ineo. Existe un algoritmo $3\alpha$-aproximado para \probl{SR} sobre grillas, que usa a $\mathcal{A}$ como caja negra.
+\end{thm}
+
+\vspace{3mm}
+
+\begin{figure}
+	\begin{center}
+		\input{img/sr_grillas_aproximado_3.pdf_tex}
+	\end{center}	
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Algoritmo aproximado para \probl{SR} sobre grillas}
+
+\begin{thm}
+Sea $\mathcal{A}$ un algoritmo $\alpha$-aproximado para \probl{PTSP} rectil'ineo. Existe un algoritmo $3\alpha$-aproximado para \probl{SR} sobre grillas, que usa a $\mathcal{A}$ como caja negra.
+\end{thm}
+
+\vspace{3mm}
+
+\begin{figure}
+	\begin{center}
+		\input{img/sr_grillas_aproximado_4.pdf_tex}
+	\end{center}	
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Algoritmo aproximado para \probl{SR} sobre grillas}
+
+\begin{thm}
+Sea $\mathcal{A}$ un algoritmo $\alpha$-aproximado para \probl{PTSP} rectil'ineo. Existe un algoritmo $3\alpha$-aproximado para \probl{SR} sobre grillas, que usa a $\mathcal{A}$ como caja negra.
+\end{thm}
+
+\vspace{3mm}
+
+\begin{figure}
+	\begin{center}
+		\input{img/sr_grillas_aproximado_5.pdf_tex}
+	\end{center}	
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Algoritmo aproximado para \probl{SR} sobre grillas}
+
+\begin{thm}
+Sea $\mathcal{A}$ un algoritmo $\alpha$-aproximado para \probl{PTSP} rectil'ineo. Existe un algoritmo $3\alpha$-aproximado para \probl{SR} sobre grillas, que usa a $\mathcal{A}$ como caja negra.
+\end{thm}
+
+\vspace{3mm}
+
+\begin{figure}
+	\begin{center}
+		\input{img/sr_grillas_aproximado_6.pdf_tex}
+	\end{center}	
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Algoritmo aproximado para \probl{SR} general}
+
+\pause
+
+\begin{itemize}
+	\item En el algoritmo anterior nos basamos en que $G$ es bipartito para calcular un vertex cover m'inimo en tiempo polinomial.
+	\pause
+	\item No podemos hacer esto si $G$ es cualquier grafo.
+	\pause
+	\item Idea: aproximar el vertex cover utilizado.
+\end{itemize}
+
+\pause
+
+\begin{thm}
+Sea $\mathcal{A}$ un algoritmo $\alpha$-aproximado para $\probl{PTSP}$ m'etrico. Sea $\mathcal{B}$ un algoritmo $\beta$-aproximado para $\probl{VC}$. Existe un algoritmo aproximado $\mathcal{C}$ para $\probl{SR}$, que usa a $\mathcal{A}$ y $\mathcal{B}$ como cajas negras, tal que
+
+\[\mathcal{C}(G, X) \leq \alpha(1 + 2\beta)OPT + 2\alpha(\beta - 1)\]
+\end{thm}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Otros algoritmos aproximados para \probl{SR} sobre grillas}
+
+\pause
+
+\begin{itemize}
+	\item Motivaci'on: nuestra empresa de repartos es muy exitosa, y tenemos clientes en casi todos los puntos de la ciudad.
+	\pause
+	\item Formalmente, supongamos que la cantidad de aristas que \emph{no} son clientes es $O(1)$.
+	\pause
+	\item Idea: en este caso, devolver un camino que cubra todas las aristas no deber'ia ser tan malo.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Otros algoritmos aproximados para \probl{SR} sobre grillas}
+
+\begin{thm}
+Existe un algoritmo aproximado $\mathcal{A}$ para \probl{SR} sobre grillas, tal que
+\[\length(\mathcal{A}(G, X)) \leq 2 \text{ } OPT + O(1)\]
+\end{thm}
+
+\pause
+
+\begin{figure}
+	\begin{center}
+		\input{img/sr_grillas_aproximado_7.pdf_tex}
+	\end{center}	
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Otros algoritmos aproximados para \probl{SR} sobre grillas}
+
+\pause
+
+\begin{thm}
+Existe un algoritmo aproximado $\mathcal{A}$ para \probl{SR} sobre grillas, tal que si $G$ es una grilla de $n$ filas y $m$ columnas, con $n, m > 1$, entonces 
+\[\length(\mathcal{A}(G, X)) \leq (1.5 + C(n, m)) OPT + O(1)\]
+
+donde $C(n, m) \leq 0.5$, y $C(n, m)$ tiende a $0$ cuando $n$ y $m$ tienden a infinito simultaneamente.
+\end{thm}
+
+\pause
+
+\begin{figure}
+	\begin{center}
+		\input{img/sr_grillas_aproximado_8.pdf_tex}
+	\end{center}	
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Algoritmo aproximado para \probl{SR} sobre grafos completos}
+
+\pause
+
+\begin{thm}
+Sea $\mathcal{A}$ un algoritmo $\alpha$-aproximado para \probl{VC}, con $\alpha$ una constante. Para cada $\varepsilon > 0$ existe un algoritmo $(\alpha + \varepsilon)$-aproximado para \probl{SR} sobre completos.
+\end{thm}
+
+\pause
+
+\vspace{3mm}
+El algoritmo toma tiempo $\Omega(|X|^{cte / \varepsilon})$. Cuanto m'as chico elijamos $\varepsilon > 0$, m'as preciso es el algoritmo, pero el polinomio tiene un exponente mayor.
+\end{frame}
+
+\begin{frame}
+\begin{center}
+\begin{Large}
+\textbf{Conclusiones}
+\end{Large}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Conclusiones}
+
+\textbf{Complejidad y aproximaci'on}
+
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Problema} & \textbf{Complejidad} & \textbf{Factor de aproximaci'on}\\
+\hline
+\hline
+\probl{SR} general & \class{NP-c} & $\alpha(1 + 2\gamma)OPT + 2\alpha(\gamma - 1)$\\
+\hline
+\probl{SR} sobre grillas & \class{NP-c} (*) & $3 \beta OPT$\\
+& & $(1.5 + C(n, m)) OPT + O(1)$\\
+\hline
+\probl{SR} sobre completos & \class{NP-c} & $(\gamma + \varepsilon)OPT$\\
+\hline
+\probl{SR} sobre 'arboles & \class{P} & -\\
+\hline
+\end{tabular}
+\begin{flushleft}
+{\small *: asumiendo una representaci'on impl'icita de la entrada.}
+\end{flushleft}
+\end{center}
+
+Factores de aproximaci'on: $\alpha$ es \probl{PTSP} m'etrico, $\beta$ es \probl{PTSP} rectil'ineo y $\gamma$ es \probl{VC}.
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Conclusiones}
+
+\textbf{Algoritmos exactos}
+
+\vspace{2mm}
+
+Los algoritmos combinatorios propuestos no logran resolver instancias de tama\~no real.
+
+\end{frame}
+
+\begin{frame}
+\begin{center}
+\begin{Large}
+\textbf{Trabajo futuro}
+\end{Large}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Trabajo futuro}
+
+\pause
+
+\begin{itemize}
+	\item Proponer e implementar algoritmos exactos basados en t'ecnicas de programaci'on matem'atica.
+	\pause
+	\item Demostrar, si fuera cierto, que \probl{SR} general es \class{NP-c}, asumiendo una representaci'on tradicional del input.
+	\pause
+	\item Conjeturamos que el camino que construye el algoritmo $(1.5 + C(n, m))OPT + O(1)$ (o una variante muy similar de ese camino) encuentra la soluci'on 'optima de \probl{SR} para $(G, E)$ (es decir, cuando queremos cubrir todas las aristas). Demostrarlo, si fuera cierto.
+	\pause
+	\item Una de las cotas en la demo del algoritmo $3\alpha$-aproximado usa una cota que es del peor caso. Es posible que sea mejorable usando argumentos probabil'isticos. Investigar este camino.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\begin{center}
+\begin{huge}
+\textbf{Fin}
+\end{huge}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+\begin{huge}
+\textbf{Agradecimientos}
+\end{huge}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+\begin{huge}
+\textbf{Gracias a todos!}
+\end{huge}
+\end{center}
+\end{frame}
+
+\end{document}

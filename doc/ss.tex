@@ -1,0 +1,171 @@
+\chapter{Complejidad y algoritmos para \problem{STOPS SELECTION}}
+\label{ch:ss}
+
+En este cap'itulo estudiamos el problema \problem{SS}. Comenzaremos viendo que en el caso general es un problema dif'icil, en lo que respecta a encontrar soluciones exactas. Luego, mostraremos que si nos restringimos a la clase de grafos bipartitos, el problema pasa a ser polinomial, siendo la clave de esto la capacidad de computar un vertex cover m'inimo en tiempo polinomial, en grafos bipartitos. Finalmente, damos un algoritmo aproximado para el caso general y, m'as a'un, mostramos que el m'inimo factor de aproximaci'on de \problem{SS} es igual al de \problem{VC}. Estos dos problemas resultan estar 'intimamente relacionados, tanto en t'erminos de algoritmos aproximados como de algoritmos exactos.
+
+\section{Complejidad del problema}
+
+\subsection{\problem{SS} general es \class{NP-completo}}
+
+La estrategia para probar que \problem{SS} es \class{NP-completo} es hacer una reducci'on desde \problem{VC} sobre grafos conexos. Al pedir que los grafos de entrada sean conexos, la reducci'on es m'as simple, pues \problem{SS} cubre aristas a trav'es de caminos, y s'olo puede haber un camino que cubra un conjunto de aristas si todas ellas forman parte de una misma componente conexa.
+
+Previamente debemos probar que \problem{VC} sobre conexos es \class{NP-completo}, y para ello hacemos una reducci'on desde \problem{VC} sobre grafos arbitrarios, que sabemos que es \class{NP-completo}.
+
+\begin{proposition}
+\problem{VC} sobre grafos conexos es \class{NP-completo}.
+
+\begin{proof}
+El problema est'a en \class{NP}, pues usando como certificado a un subconjunto de v'ertices $S$ del grafo, basta chequear que cada arista sea cubierta por alg'un v'ertice de $S$. Obviamente esto se puede hacer en tiempo polinomial.
+
+Veamos que est'a en \class{NP-hard}. Hacemos una reducci'on desde \problem{VC} sobre grafos arbitrarios. Sea $(G, k)$ una instancia de \problem{VC}, y sean $H_1, \dots, H_r$ las componentes conexas de $G$. A partir de $G$ construimos el grafo $G'$, tal como indica la \autoref{fig:ss_1}. Concretamente, agregamos dos v'ertices $u$ y $v$, una arista $\{u, v\}$ y una arista $\{u, h_i\}$, con $h_i$ un v'ertice arbitrario de $H_i$, para cada $1 \leq i \leq r$. Como $G'$ es conexo, $(G', k + 1)$ es una instancia de \problem{VC} sobre conexos. La construcci'on de $(G', k + 1)$ es polinomial, pues a $G$ le agregamos una cantidad polinomial de aristas y v'ertices.
+
+\begin{figure}[h]
+	\begin{center}
+		\input{img/ss_1.pdf_tex}
+	\end{center}		
+	\caption{Gadget para la reducci'on de \problem{VC} a \problem{VC} sobre conexos.}
+	\label{fig:ss_1}
+\end{figure}
+
+Debemos ver que $(G, k)$ es una instancia de SI de \problem{VC} si y s'olo si $(G', k + 1)$ es una instancia de SI de \problem{VC} sobre conexos. Si $(G, k)$ es una instancia de SI para \problem{VC}, entonces $G$ tiene un vertex cover de $k$ o menos v'ertices. Agreg'andole el v'ertice $u$ obtenemos un vertex cover de $G'$. Entonces $G'$ tiene un vertex cover de $k + 1$ o menos v'ertices, o sea que $(G', k + 1)$ es una instancia de SI de \problem{VC} sobre conexos.
+
+Rec'iprocamente, si $(G', k + 1)$ es una instancia de SI de \problem{VC} sobre conexos, $G'$ admite un vertex cover $S$ de $k + 1$ o menos v'ertices. Como el conjunto $S$ cubre la arista $\{u, v\}$, necesariamente contiene a $u$ o a $v$. Como ni $u$ ni $v$ cubren aristas de $G$, el subconjunto $S \cap V(G)$ es un vertex cover de $G$, y tiene menos v'ertices que $S$, porque no contiene a $u$ ni a $v$, que no est'an en $V(G)$. Luego, $G$ tiene un vertex cover de $k$ o menos v'ertices, y por ende $(G, k)$ es una instancia de SI de \problem{VC}.
+\end{proof}
+\end{proposition}
+
+\begin{lemma}
+\label{le:camino_con_todos_los_vertices}
+Dado un grafo conexo $G = (V, E)$, podemos construir un camino de $G$ que pase por todos sus v'ertices, que tenga longitud polinomial en el tama\~no de $G$.
+
+\begin{proof}
+Comenzamos enumerando los elementos de $V$ en un orden arbitrario. Luego, entre cada par consecutivo de estos v'ertices, trazamos un camino simple. Esta construcci'on est'a bien definida, porque siempre hay un camino entre dos v'ertices dados, por ser $G$ conexo.
+
+El camino que se obtiene tiene longitud menor o igual a $(|V| - 1)^2$, pues un camino simple entre cada par de v'ertices consecutivos de la enumeraci'on inicial tiene longitud a lo sumo $|V| - 1$ (si no fuera simple, podr'ia ser arbitrariamente grande). Esta cantidad es polinomial en el tama\~no de $G$. Su construcci'on se puede hacer f'acilmente en tiempo polinomial, pues podemos encontrar un camino m'inimo entre dos v'ertices cualesquiera de $G$ en tiempo polinomial (por ejemplo, haciendo una BFS), y esta operaci'on se realiza $|V| - 1$ veces.
+\end{proof}
+\end{lemma}
+
+\begin{lemma}
+\label{le:igualdad_ss_tau}
+Sea $G = (V, E)$ un grafo conexo, y $P$ un camino de $G$ que visita todo v'ertice de $V$. Entonces $\problem{SS}^*(G, E, P) = \tau(G)$.
+
+\begin{proof}
+La hip'otesis de que $P$ contiene todo v'ertice de $G$ es la clave de la demostraci'on. Por un lado, de ella se deduce que $P$ cubre todas las aristas de $G$, y por ende que $(G, E, P)$ es una instancia v'alida de \problem{SS}. Por otro lado, implica que un conjunto de v'ertices $S$ es vertex cover de $G$ si y s'olo si $S$ es un conjunto de paradas v'alido de $(G, E, P)$. De esto 'ultimo se deduce la igualdad $\problem{SS}^*(G, E, P) = \tau(G)$.
+\end{proof}
+\end{lemma}
+
+\begin{theorem}
+\label{th:ss_npc}
+\problem{SS} es \class{NP-completo}.
+
+\begin{proof}
+Veamos que \problem{SS} est'a en \class{NP}. Asumiendo que el certificado es un subconjunto de v'ertices de $P$, simplemente hay que chequear que cada una de las aristas de $X$ est'e cubierta por alg'un v'ertice de $P$.
+
+Para ver que est'a en \class{NP-hard}, hacemos una reducci'on desde \problem{VC} sobre grafos conexos. Sea $(G, k)$ una instancia de \problem{VC} con $G = (V, E)$ conexo.
+
+Sea $P$ un camino de $G$ que cubre todos sus v'ertices, y de longitud polinomial, que sabemos que existe por el \autoref{le:camino_con_todos_los_vertices}. Transformamos la instancia $(G, k)$ de \problem{VC} sobre conexos, en la instancia $(G, E, P, k)$ de \problem{SS}. Esta transforamci'on es polinomial, pues el camino $P$ se puede construir en tiempo polinomial. Observar que $(G, E, P, k)$ es una instancia v'alida de \problem{SS}, pues como $P$ pasa por todos los v'ertices de $G$, debe cubrir todas sus aristas.
+
+Para terminar, debemos ver que $(G, k)$ es una instancia de SI de \problem{VC} si y s'olo si $(G, E, P, k)$ es una instancia de SI de \problem{SS}, pero esto se sigue directamente del \autoref{le:igualdad_ss_tau}.
+\end{proof}
+\end{theorem}
+
+\subsection{\problem{SS} sobre bipartitos est'a en $\class{P}$}
+
+\begin{theorem}
+\label{th:ss_bipartitos_p}
+\problem{SS} sobre grafos bipartitos est'a en $\class{P}$.
+\end{theorem}
+
+Para probar el teorema, presentamos el \autoref{al:ss}, que calcula un conjunto de paradas m'inimo. El algoritmo funciona para cualquier clase de grafos, pero en el caso de bipartitos corre en tiempo polinomial, como probaremos.
+
+\begin{algorithm}
+  \caption{Algoritmo para \problem{SS}.}
+  \label{al:ss}
+  \begin{algorithmic}[1]
+  	\Require $G = (V, E)$ un grafo, $X \subset E$ y $P$ un camino de $G$ que cubre $X$.
+  	\Ensure Una soluci'on 'optima de \problem{SS} para $(G, X, P)$.
+  	\State Sea $A$ el conjunto de aristas $e$ de $X$ tal que exactamente uno de los extremos de $e$ est'a cubierto por $P$.
+  	\State Para cada $e \in A$, considerar el 'unico extremo de $e$ contenido en $P$. Sea $S_A$ el conjunto de estos extremos.
+	\State Sea $B = X - \{e \in X : S_A \text{ cubre a }e \}$. Calcular un vertex cover m'inimo $S_B$ de $G[B]$.
+	\Return $S_A \cup S_B$
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{theorem}
+El \autoref{al:ss} es correcto. Esto es, calcula una soluci'on 'optima de \problem{SS} para $(G, X, P)$. Adem'as, si $G$ es bipartito, corre en tiempo polinomial.
+\begin{proof}
+Cada arista de $A$ se puede cubrir de una 'unica forma, de modo que el conjunto de extremos $S_A$ est'a contenido en toda soluci'on de \problem{SS}. El conjunto $B$ contiene los clientes que no son cubiertos por $S_A$. Luego, cualesquiera dos soluciones factibles de \problem{SS} s'olo pueden diferir en la forma en que cubren $B$. Un vertex cover m'inimo de $G[B]$ es un conjunto m'inimo que cubre $G[B]$, y por lo tanto nos da una soluci'on 'optima para \problem{SS}. Notar que todo vertex cover de $G[B]$ est'a contenido en $P$, porque, todo cliente de $B$ tiene sus dos extremos en $P$.
+
+Supongamos que $G$ es bipartito, y veamos que el algoritmo corre en tiempo polinomial. S'olo debemos analizar el paso 3, pues los pasos 1-2 son claramente polinomiales. Como $G$ es bipartito, $G[B]$ tambi'en lo es. Encontrar un vertex cover m'inimo en un grafo bipartito es un problema polinomial, tal como afirma el \autoref{th:vc_sobre_bipartitos_es_polinomial}.
+\end{proof}
+\end{theorem}
+
+\begin{corollary}
+\problem{SS} sobre grafos grilla est'a en \class{P}.
+\end{corollary}
+
+\section{Algoritmos exactos y aproximados}
+
+El \autoref{al:ss} es un algoritmo exacto que resuelve \problem{SS} para grafos arbitrarios. Si se admite cualquier tipo de grafo $G$ en la entrada, s'olo se conocen implementaciones exponenciales de la l'inea 3, pues \problem{VC} sobre grafos arbitrarios es \problem{NP-completo}. Este algoritmo puede verse como una reducci'on de \problem{SS} a \problem{VC}, en lo que respecta a encontrar una soluci'on exacta. A partir de esta reducci'on se podr'ia demostrar que \problem{VC} es \class{NP-completo}, asumiendo que \problem{SS} lo es.
+
+A continuaci'on probamos que \problem{VC} y \problem{SS} son igualmente dif'iciles en lo que respecta a encontrar soluciones aproximadas. Como parte de esto, damos un algoritmo aproximado para \problem{SS}, que utiliza un algoritmo aproximado (cualquiera) para \problem{VC}, como caja negra.
+
+\begin{theorem}
+\label{th:ss_vc_aproximados}
+Existe un algoritmo $\alpha$-aproximado para \problem{VC} si y s'olo si existe un algoritmo $\alpha$-aproximado para \problem{SS}.
+
+\begin{proof}
+
+($\Rightarrow$) Sea $\mathcal{A}$ un algoritmo $\alpha$-aproximado para \problem{VC}. El algoritmo aproximado que proponemos para \problem{SS} es similar al \autoref{al:ss}, pero en lugar de calcular un vertex cover m'inimo en la l'inea 3, utilizamos $\mathcal{A}$ para obtener una aproximaci'on del mismo. Lo presentamos como el  \autoref{al:ss_aprox}.
+
+\begin{algorithm}
+  \caption{Algoritmo aproximado para \problem{SS}.}
+  \label{al:ss_aprox}
+  \begin{algorithmic}[1]
+  	\Require $G = (V, E)$ un grafo, $X \subset E$ y $P$ un camino de $G$ que cubre $X$.
+  	\Ensure Una soluci'on factible de \problem{SS} para $(G, X, P)$.
+  	\State Sea $A$ el conjunto de aristas $e$ de $X$ tal que exactamente uno de los extremos de $e$ est'a cubierto por $P$.
+  	\State Para cada $e \in A$, considerar el 'unico extremo de $e$ contenido en $P$. Sea $S_A$ el conjunto de estos extremos.
+	\State Sea $B = X - \{e \in X : S_A \text{ cubre a }e \}$. Calcular $S_B' = \mathcal{A}(G[B])$.
+	\Return $S_A \cup S_B'$
+  \end{algorithmic}
+\end{algorithm}
+
+Es f'acil ver que el algoritmo es polinomial, y que devuelve una soluci'on factible de \problem{SS} para $(G, X, P)$. Para ver que el algoritmo es $\alpha$-aproximado, debemos probar que $|S_A \cup S_B'| \leq \alpha \text{ } \problem{SS}^*(G, X, P)$. Notar que de la correctitud del \autoref{al:ss} se desprende que $\problem{SS}^*(G, X, P) = |S_A| + \tau(G[B])$. Se tiene
+
+\begin{align*}
+|S_A \cup S_B'| &\leq |S_A| + |S_B'| &\\
+&\leq |S_A| + \alpha \text{ } \tau(G[B]) &\text{(} \mathcal{A} \text{ es } \alpha \text{-aproximado)}\\
+&\leq \alpha|S_A| + \alpha \text{ } \tau(G[B]) & \text{(} \alpha \geq 1 \text{)}\\
+&= \alpha(|S_A| + \tau(G[B]))&\\
+&= \alpha \text{ } \problem{SS}^*(G, X, P)&
+\end{align*}
+
+($\Leftarrow$) Sea $\mathcal{B}$ un algoritmo $\alpha$-aproximado para \problem{SS}. El algoritmo que proponemos para \problem{VC} es el \autoref{al:vc_aprox}. Es f'acil ver que el algoritmo es polinomial. Adem'as, como cada conjunto de paradas $S_H$ es un vertex cover de $H$, el resultado es un vertex cover de todo el grafo. La respuesta es tal que
+
+\begin{align*}
+\left|\bigcup\limits_H S_H\right| &= \sum_H |S_H| &\text{(los conjuntos son disjuntos)}\\
+&\leq \sum_H \alpha \text{ } \problem{SS}^*(H, E(H), P_H) & \text{(} \mathcal{B} \text{ es } \alpha \text{-aproximado)}\\
+&= \sum_H \alpha \text{ } \tau(H) & \text{(\autoref{le:igualdad_ss_tau})}\\
+&= \alpha \sum_H \tau(H) &\\
+&= \alpha \text{ } \tau(G)&
+\end{align*}
+
+\begin{algorithm}
+  \caption{Algoritmo aproximado para \problem{VC}.}
+  \label{al:vc_aprox}
+  \begin{algorithmic}[1]
+  	\Require $G = (V, E)$ un grafo.
+  	\Ensure Una soluci'on factible de \problem{VC} para $G$.
+  	\ForEach{$H$ componente conexa de $G$}
+		\State Calcular un camino $P_H$ que pasa por todos los v'ertices de $H$, como indica el \autoref{le:camino_con_todos_los_vertices}.
+		\State Calcular $S_H = \mathcal{B}(H, E(H), P_H)$.
+	\EndFor
+	\Return $\bigcup\limits_H S_H$
+  \end{algorithmic}
+\end{algorithm}
+\end{proof}
+\end{theorem}
+
+\begin{corollary}
+El mejor factor de aproximaci'on posible para \problem{SS} es igual al mejor factor de aproximaci'on posible para \problem{VC}.
+\end{corollary}

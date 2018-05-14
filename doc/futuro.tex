@@ -1,0 +1,28 @@
+\chapter{Conclusiones}
+
+En esta tesis estudiamos el problema \problem{STAR ROUTING}, que puede ser sintetizado como una combinaci'on entre el problema de ruteo de un veh'iculo y el problema de computar un vertex cover en un grafo. En menor medida estudiamos el problema af'in \problem{STOPS SELECTION}.
+
+En primer lugar, logramos caracterizar \problem{SS}, al probar que es equivalente al problema de vertex cover, tanto desde el punto de vista de algoritmos exactos como aproximados. Dimos una transformaci'on polinomial de \problem{VC} a \problem{SS}, y mostramos un algoritmo exacto para \problem{SS} basado en un algoritmo para \problem{VC}. Este algoritmo es supra-polinomial si la entrada admite cualquier tipo de grafo, pero polinomial para el caso de grafos bipartitos. Por otro lado, probamos que el m'inimo factor de aproximaci'on de \problem{SS} es igual al m'inimo factor de aproximaci'on de \problem{VC}. Esto nos da un algoritmo $2$-aproximado para \problem{SS}.
+
+Con respecto a \problem{SR}, logramos demostrar resultados de complejidad sobre varias clases de grafos, concluyendo que es \class{NP-completo} en el caso general, sobre grafos grilla y sobre grafos completos, y que es polinomial sobre 'arboles. Debemos tener en cuenta que en el caso de grafos grilla se prob'o que el problema es dif'icil asumiendo una representaci'on no tradicional de la entrada, aunque la misma es razonable.  Para el caso de grafos completos, realizamos una reducci'on desde \problem{VC}. Para el caso de 'arboles, dimos un algoritmo de programaci'on din'amica que corre en tiempo lineal.
+
+Los algoritmos exactos para \problem{SR} que propusimos y analizamos, son interesantes desde el punto de vista te'orico, pero no son suficientemente r'apidos como para satisfacer necesidades pr'acticas. El mejor algoritmo encontrado tiene complejidad $O(k^4 2^k)$, aunque utiliza $O(k^2 2^k)$ memoria, haci'endolo impr'actico. Utilizando la t'ecnica de backtracking, llegamos a un algoritmo $O(k \cdot k!)$ que, aunque usa $O(k)$ memoria, sigue siendo exponencial. La experimentaci'on mostr'o que, luego de implementar podas mediante funciones de acotaci'on los tiempos de ejecuci'on se reducen notablemente, pero a'un as'i estos algoritmos no son capaces de resolver instancias de m'as de $25$ clientes, en menos de una hora. Realizando simples proyecciones podemos concluir que instancias grandes demorar'ian una cantidad de tiempo en el orden de las horas o d'ias.
+
+En contraste, los algoritmos aproximados para \problem{SR} propuestos son satisfactorios, en el sentido de que garantizan soluciones factibles cuyo valor es a lo sumo un factor constante m'as grande que el 'optimo. De ellos podemos concluir, en primer lugar, que \problem{SR} es aproximable a no m'as de un factor constante y, en segundo lugar, que todas las restricciones consideradas de \problem{SR} se pueden aproximar con un factor de aproximaci'on peque\~no. Espec'ificamente, pudimos obtener un $(9/2)$-aproximado sobre grafos grilla, y un $(2 + \varepsilon)$-aproximado sobre grafos completos.
+
+\subsection*{Trabajo futuro}
+
+Al no existir trabajos previos relacionados a SR en la literatura, realizamos en esta tesis un estudio inicial del problema con respecto a los enfoques cl'asicos en los trabajos de optimizaci'on combinatoria. Es decir, estudiamos su complejidad y desarrollamos algoritmos (exactos y aproximados) para el problema. M'as all'a de esta tesis, son numerosas las inc'ognitas que nos planteamos a lo largo del recorrido. A continuaci'on listamos algunas de esas preguntas abiertas, y posibles v'ias de trabajo a futuro:
+
+\begin{itemize}
+	\item Demostrar, si es cierto, que \problem{SR} sobre grillas es \class{NP-completo}, asumiendo una representaci'on tradicional de la entrada.
+	\item Los algoritmos exactos que propusimos admiten cualquier tipo de grafo de entrada. ?`Existir'a un algoritmo exacto espec'ifico para \problem{SR} sobre grillas, que tenga un mejor tiempo de ejecuci'on?
+	\item Buscar e implementar mejores funciones de acotaci'on.
+	\item Implementar algunos de los algoritmos aproximados propuestos y utilizarlos para producir soluciones iniciales en los algoritmos exactos.
+	\item Buscar algoritmos aproximados para \problem{SR} que no utilicen otros algoritmos aproximados como cajas negras.
+	\item Buscar algoritmos aproximados aleatorizados. En la demostraci'on del 'item 2 del \autoref{th:vertex_cover_bounds}, partimos de un vertex cover $S$ y proponemos cierta permutaci'on de $S$ como soluci'on factible de \problem{PTSP}, a trav'es de una soluci'on 'optima $P$ de \problem{SR}. Esta permutaci'on tiene, como soluci'on de \problem{PTSP}, valor menor o igual a $\length(P) + 2(|S| - 1)$, aunque esta cota es para el peor caso. ?`Hay alguna forma de elegir $S$ o $P$ de modo tal de mejorar esta cota (bajo ciertas hip'otesis probabil'isticas sobre $X$)?
+	\item Implementar metaheur'isticas para \problem{SR} y \problem{SS}, y comparar su eficacia contra los algoritmos aproximados.
+	\item Calcular, si es posible, y en forma exacta, $\problem{SR}^*(G, E)$ con $G$ un grafo grilla. Conjeturamos que un recorrido de tipo onda o similar realiza la longitud m'inima.
+	\item Explorar generalizaciones o variantes del problema. Por ejemplo, buscar un circuito de costo m'inimo, agregar un punto de partida del veh'iculo de entregas, admitir m'as de un veh'iculo de entregas, o admitir pesos en el grafo.
+	\item Desde un punto de vista de negocios, evaluar cu'an conveniente puede llegar a ser un sistema de entregas como el que modela \problem{SR}. Si es factible, proponerlo a una gran empresa y hacerse millonario.
+\end{itemize}
