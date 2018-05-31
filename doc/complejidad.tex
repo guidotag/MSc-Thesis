@@ -479,12 +479,12 @@ El costo del algoritmo est'a dado por el costo de la l'inea 2, m'as el de todas 
 \right.\]
 
 \noindent
-con lo cual $k \leq d(t)$. Cada ejecuci'on de la l'inea 6 es $O(1 + k)$ (sumamos $1$, pues $k$ puede valer $0$, pero el costo siempre es positivo). El costo de la l'inea 7 es el costo de realizar los c'omputos indicados por las ecuaciones de recurrencia. Es f'acil ver que todas se pueden calcular en $O(1 + k)$, excepto la de la \autoref{cl:throughsr}, que contiene la siguiente expresi'on,
+con lo cual $k \leq d(t)$. Cada ejecuci'on de la l'inea 6 es $O(k)$ (sumamos $1$, pues $k$ puede valer $0$, pero el costo siempre es positivo). El costo de la l'inea 7 es el costo de realizar los c'omputos indicados por las ecuaciones de recurrencia. Es f'acil ver que todas se pueden calcular en $O(k)$, excepto la de la \autoref{cl:throughsr}, que contiene la siguiente expresi'on,
 
 \[\min\limits_{\substack{1 \leq p, q \leq k \\ p \neq q \\ \clients(t_p) > 0 \\ \clients(t_q) > 0}} (\startsr(t_p) + 1 + \toursr(t - T_p - T_q) + 1 + \startsr(t_q))\]
 
 \noindent
-Como $p$ y $q$ recorren, cada una, un rango de $O(k)$ elementos, el c'omputo na\"ive toma tiempo $O(1 + k^2)$. Podemos reescribir la expresi'on a minimizar del siguiente modo,
+Como $p$ y $q$ recorren, cada una, un rango de $O(k)$ elementos, el c'omputo na\"ive toma tiempo $O(k^2)$. Podemos reescribir la expresi'on a minimizar del siguiente modo,
 
 \begin{align*}
 \startsr(t_p) + &1 + \toursr(t - T_p - T_q) + 1 + \startsr(t_q) =\\
@@ -493,9 +493,9 @@ Como $p$ y $q$ recorren, cada una, un rango de $O(k)$ elementos, el c'omputo na\
 \end{align*}
 
 \noindent
-donde $\Delta_i = \toursr(t_i) - \startsr(t_i) - 1$. Es $\Delta_i \geq 0$, o equivalentemente $\startsr(t_i) \leq \toursr(t_i) - 1$, pues podemos obtener una soluci'on factible de $\startsr$ para $t_i$ quit'andole la 'ultima arista a cualquier camino que realice $\toursr(t_i)$. Luego, el m'inimo se obtiene para un par de 'indices $p$ y $q$ que maximicen $\Delta_p$ y $\Delta_q$. Para calcularlos, simplemente iteramos sobre $1 \leq i \leq k$, y nos quedamos con los 'indices que realicen los dos valores m'as grandes de $\Delta_i$, sujeto a $\clients(t_i) > 0$. Entonces, 'esta y todas las dem'as ecuaciones se pueden calcular en tiempo $O(1 + k)$.
+donde $\Delta_i = \toursr(t_i) - \startsr(t_i) - 1$. Es $\Delta_i \geq 0$, o equivalentemente $\startsr(t_i) \leq \toursr(t_i) - 1$, pues podemos obtener una soluci'on factible de $\startsr$ para $t_i$ quit'andole la 'ultima arista a cualquier camino que realice $\toursr(t_i)$. Luego, el m'inimo se obtiene para un par de 'indices $p$ y $q$ que maximicen $\Delta_p$ y $\Delta_q$. Para calcularlos, simplemente iteramos sobre $1 \leq i \leq k$, y nos quedamos con los 'indices que realicen los dos valores m'as grandes de $\Delta_i$, sujeto a $\clients(t_i) > 0$. Entonces, 'esta y todas las dem'as ecuaciones se pueden calcular en tiempo $O(k)$.
 
-En definitiva, las l'ineas 6-7 son $O(1 + k)$, con lo cual, como $O(k) = O(d(t))$, todas las ejecuciones de esas l'ineas tienen un costo $O(\sum_{t \in V} (1 + d(t))) = O(|V| + |E|)$. En total, el costo del algoritmo es $O(|V| + |E|)$, como quer'iamos probar.
+En definitiva, las l'ineas 6-7 son $O(k)$, con lo cual, como $O(k) = O(d(t))$, todas las ejecuciones de esas l'ineas tienen un costo $O(\sum_{t \in V} (1 + d(t))) = O(|V| + |E|)$. En total, el costo del algoritmo es $O(|V| + |E|)$, como quer'iamos probar.
 \end{proof}
 \end{theorem}
 
